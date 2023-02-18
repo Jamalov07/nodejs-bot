@@ -14,4 +14,12 @@ export declare class AppService {
     registration(ctx: Context): Promise<void>;
     hearsMaster(ctx: Context): Promise<void>;
     hearsServiceTypes(ctx: Context): Promise<void>;
+    onMessage(ctx: Context): Promise<void>;
+    onContact(ctx: Context): Promise<void>;
+    hearsNext(ctx: Context): Promise<void>;
+    onLocation(ctx: Context): Promise<void>;
+    requestToAdmin(ctx: Context): Promise<void>;
+    cancelRegistration(ctx: Context): Promise<void>;
+    confirmInAdmin(ctx: Context): Promise<void>;
+    checkStatusMaster(ctx: Context): Promise<void>;
 }

@@ -5,6 +5,8 @@ interface MasterAttr {
     phone_number: string;
     service_id: number;
     address: string;
+    target_address: string;
+    service_name: string;
     location: string;
     work_start_time: string;
     work_end_time: string;
@@ -18,8 +20,10 @@ export declare class Master extends Model<Master, MasterAttr> {
     master_id: string;
     name: string;
     phone_number: string;
+    service_name: string;
     service_id: number;
     address: string;
+    target_address: string;
     location: string;
     work_start_time: string;
     work_end_time: string;

@@ -29,8 +29,29 @@ let AppUpdate = class AppUpdate {
     async hearsMaster(ctx) {
         return this.appService.hearsMaster(ctx);
     }
-    async hearsServiceName(ctx) {
+    async actionService(ctx) {
         return this.appService.hearsServiceTypes(ctx);
+    }
+    async onContact(ctx) {
+        return this.appService.onContact(ctx);
+    }
+    async next(ctx) {
+        return this.appService.hearsNext(ctx);
+    }
+    async onLocation(ctx) {
+        return this.appService.onLocation(ctx);
+    }
+    async confirm(ctx) {
+        return this.appService.requestToAdmin(ctx);
+    }
+    async cancelConfirm(ctx) {
+        return this.appService.cancelRegistration(ctx);
+    }
+    async allowThisMaster(ctx) {
+        return this.appService.confirmInAdmin(ctx);
+    }
+    async onMessage(ctx) {
+        return this.appService.onMessage(ctx);
     }
 };
 __decorate([
@@ -55,12 +76,61 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AppUpdate.prototype, "hearsMaster", null);
 __decorate([
-    (0, nestjs_telegraf_1.Hears)(["sartarosh", "gozallik saloni"]),
+    (0, nestjs_telegraf_1.Action)(/^(thisservice=\d+)/),
     __param(0, (0, nestjs_telegraf_1.Ctx)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [telegraf_1.Context]),
     __metadata("design:returntype", Promise)
-], AppUpdate.prototype, "hearsServiceName", null);
+], AppUpdate.prototype, "actionService", null);
+__decorate([
+    (0, nestjs_telegraf_1.On)("contact"),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "onContact", null);
+__decorate([
+    (0, nestjs_telegraf_1.Hears)("⏭ keyingisi"),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "next", null);
+__decorate([
+    (0, nestjs_telegraf_1.On)("location"),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "onLocation", null);
+__decorate([
+    (0, nestjs_telegraf_1.Action)("reqtoadmin"),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "confirm", null);
+__decorate([
+    (0, nestjs_telegraf_1.Action)("delmyinfo"),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "cancelConfirm", null);
+__decorate([
+    (0, nestjs_telegraf_1.Action)(/^(allowto=\d+)/),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "allowThisMaster", null);
+__decorate([
+    (0, nestjs_telegraf_1.On)("message"),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "onMessage", null);
 AppUpdate = __decorate([
     (0, nestjs_telegraf_1.Update)(),
     __metadata("design:paramtypes", [app_service_1.AppService])
