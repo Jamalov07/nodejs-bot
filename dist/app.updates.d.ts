@@ -8,4 +8,7 @@ export declare class AppUpdate {
     enterToAdmin(ctx: Context): Promise<void>;
     properties(ctx: Context): Promise<void>;
     addServiceType(ctx: Context): Promise<void>;
+    toMainMenu(ctx: Context): Promise<void>;
+    reAddNewItem(ctx: Context): Promise<void>;
+    onMessage(ctx: Context): Promise<void>;
 }

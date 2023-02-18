@@ -23,7 +23,12 @@ export class AdminService {
   }
 
   async commandAdmin(ctx: Context) {
-    if(ctx.from.id === Number(process.env.ADMIN_ID)){
+    const admin = await this.adminRepository.findOne({
+      where:{
+        admin_id:String(ctx.from.id)
+      }
+    })
+    if(admin || ctx.from.id === Number(process.env.ADMIN_ID)){
       await this.bot.telegram.sendChatAction(ctx.from.id, "typing");
       await messageToAdmin('Assalomu alaykum! Xush kelibsiz hurmatli admin',ctx);
     } else {
@@ -46,10 +51,62 @@ export class AdminService {
   }
 
   async addServiceType(ctx:Context) {
-    await this.adminRepository.create({
-      admin_id:''+ctx.from.id,
-      last_state:'addnewService'
-    })
+    const admin = await this.adminRepository.findOne({
+      where:{
+        admin_id:String(ctx.from.id)
+      }
+    });
+    if(!admin) {
+      await this.adminRepository.create({
+        admin_id: '' + ctx.from.id,
+        last_state: 'addnewService'
+      })
+    }
+    admin.last_state = 'addnewService'
+    await admin.save()
     await ctx.replyWithHTML('💁‍♂️ Marhamat yangi servisning nomini kiriting !')
+  }
+
+  async onMessage(ctx:Context) {
+    const admin = await this.adminRepository.findOne({
+      where:{
+        admin_id:String(ctx.from.id)
+      }
+    })
+    if(admin.last_state == 'addnewService') {
+      if('text' in ctx.message) {
+        await this.serviceRepository.create({
+          name:String(ctx.message.text)
+        })
+        admin.last_state = "finish";
+        await admin.save()
+        await ctx.reply('Muvaffaqiyatli qoshildi !',{
+          parse_mode:'HTML',
+          ...Markup.keyboard([
+            ["♻️ Yana qo'shish","🏠 Bosh menyu"]
+
+          ])
+            .oneTime()
+            .resize()
+        })
+      } else {
+        await messageToAdmin('Bosh menyu',ctx);
+      }
+    }
+  }
+
+  async toMainMenu(ctx:Context) {
+    await messageToAdmin('<b>Bosh menyu</b>',ctx);
+  }
+
+  async reAddNewItem(ctx:Context) {
+    await this.adminRepository.update({
+      last_state:'addnewService'
+    },{
+      where:{
+        admin_id:String(ctx.from.id)
+      }
+    })
+    await ctx.reply('💁‍♂️ Marhamat yana bir bor yangi servis xizmati nomini kiriting !')
   }
 }

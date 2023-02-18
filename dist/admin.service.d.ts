@@ -15,4 +15,7 @@ export declare class AdminService {
     commandAdmin(ctx: Context): Promise<void>;
     showProperties(ctx: Context): Promise<void>;
     addServiceType(ctx: Context): Promise<void>;
+    onMessage(ctx: Context): Promise<void>;
+    toMainMenu(ctx: Context): Promise<void>;
+    reAddNewItem(ctx: Context): Promise<void>;
 }

@@ -34,7 +34,12 @@ let AdminService = class AdminService {
         this.bot = bot;
     }
     async commandAdmin(ctx) {
-        if (ctx.from.id === Number(process.env.ADMIN_ID)) {
+        const admin = await this.adminRepository.findOne({
+            where: {
+                admin_id: String(ctx.from.id)
+            }
+        });
+        if (admin || ctx.from.id === Number(process.env.ADMIN_ID)) {
             await this.bot.telegram.sendChatAction(ctx.from.id, "typing");
             await (0, messageToAdmin_1.messageToAdmin)('Assalomu alaykum! Xush kelibsiz hurmatli admin', ctx);
         }
@@ -50,11 +55,57 @@ let AdminService = class AdminService {
             .resize()));
     }
     async addServiceType(ctx) {
-        await this.adminRepository.create({
-            admin_id: '' + ctx.from.id,
-            last_state: 'addnewService'
+        const admin = await this.adminRepository.findOne({
+            where: {
+                admin_id: String(ctx.from.id)
+            }
         });
+        if (!admin) {
+            await this.adminRepository.create({
+                admin_id: '' + ctx.from.id,
+                last_state: 'addnewService'
+            });
+        }
+        admin.last_state = 'addnewService';
+        await admin.save();
         await ctx.replyWithHTML('💁‍♂️ Marhamat yangi servisning nomini kiriting !');
+    }
+    async onMessage(ctx) {
+        const admin = await this.adminRepository.findOne({
+            where: {
+                admin_id: String(ctx.from.id)
+            }
+        });
+        if (admin.last_state == 'addnewService') {
+            if ('text' in ctx.message) {
+                await this.serviceRepository.create({
+                    name: String(ctx.message.text)
+                });
+                admin.last_state = "finish";
+                await admin.save();
+                await ctx.reply('Muvaffaqiyatli qoshildi !', Object.assign({ parse_mode: 'HTML' }, telegraf_1.Markup.keyboard([
+                    ["♻️ Yana qo'shish", "🏠 Bosh menyu"]
+                ])
+                    .oneTime()
+                    .resize()));
+            }
+            else {
+                await (0, messageToAdmin_1.messageToAdmin)('Bosh menyu', ctx);
+            }
+        }
+    }
+    async toMainMenu(ctx) {
+        await (0, messageToAdmin_1.messageToAdmin)('<b>Bosh menyu</b>', ctx);
+    }
+    async reAddNewItem(ctx) {
+        await this.adminRepository.update({
+            last_state: 'addnewService'
+        }, {
+            where: {
+                admin_id: String(ctx.from.id)
+            }
+        });
+        await ctx.reply('💁‍♂️ Marhamat yana bir bor yangi servis xizmati nomini kiriting !');
     }
 };
 AdminService = __decorate([

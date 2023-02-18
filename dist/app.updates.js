@@ -31,6 +31,15 @@ let AppUpdate = class AppUpdate {
     async addServiceType(ctx) {
         return this.adminService.addServiceType(ctx);
     }
+    async toMainMenu(ctx) {
+        return this.adminService.toMainMenu(ctx);
+    }
+    async reAddNewItem(ctx) {
+        return this.adminService.reAddNewItem(ctx);
+    }
+    async onMessage(ctx) {
+        return this.adminService.onMessage(ctx);
+    }
 };
 __decorate([
     (0, nestjs_telegraf_1.Command)('admin'),
@@ -53,6 +62,27 @@ __decorate([
     __metadata("design:paramtypes", [telegraf_1.Context]),
     __metadata("design:returntype", Promise)
 ], AppUpdate.prototype, "addServiceType", null);
+__decorate([
+    (0, nestjs_telegraf_1.Hears)('🏠 Bosh menyu'),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "toMainMenu", null);
+__decorate([
+    (0, nestjs_telegraf_1.Hears)("♻️ Yana qo'shish"),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "reAddNewItem", null);
+__decorate([
+    (0, nestjs_telegraf_1.On)('message'),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "onMessage", null);
 AppUpdate = __decorate([
     (0, nestjs_telegraf_1.Update)(),
     __metadata("design:paramtypes", [app_service_1.AppService,
