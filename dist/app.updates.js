@@ -31,11 +31,26 @@ let AppUpdate = class AppUpdate {
     async addServiceType(ctx) {
         return this.adminService.addServiceType(ctx);
     }
+    async seeMasters(ctx) {
+        return this.adminService.seeMasters(ctx);
+    }
+    async hearsService(ctx) {
+        return this.adminService.hearsServiceFields(ctx);
+    }
     async toMainMenu(ctx) {
+        return this.adminService.toMainMenu(ctx);
+    }
+    async mMenu(ctx) {
         return this.adminService.toMainMenu(ctx);
     }
     async reAddNewItem(ctx) {
         return this.adminService.reAddNewItem(ctx);
+    }
+    async searchByName(ctx) {
+        return this.adminService.searchByName(ctx);
+    }
+    async searchByNumber(ctx) {
+        return this.adminService.searchByNumber(ctx);
     }
     async onMessage(ctx) {
         return this.adminService.onMessage(ctx);
@@ -63,6 +78,20 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AppUpdate.prototype, "addServiceType", null);
 __decorate([
+    (0, nestjs_telegraf_1.Hears)('🧖‍♂️ Ustalar'),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "seeMasters", null);
+__decorate([
+    (0, nestjs_telegraf_1.Action)(/^(fields=\d+)/),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "hearsService", null);
+__decorate([
     (0, nestjs_telegraf_1.Hears)('🏠 Bosh menyu'),
     __param(0, (0, nestjs_telegraf_1.Ctx)()),
     __metadata("design:type", Function),
@@ -70,12 +99,33 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AppUpdate.prototype, "toMainMenu", null);
 __decorate([
+    (0, nestjs_telegraf_1.Action)('mainmenu'),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "mMenu", null);
+__decorate([
     (0, nestjs_telegraf_1.Hears)("♻️ Yana qo'shish"),
     __param(0, (0, nestjs_telegraf_1.Ctx)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [telegraf_1.Context]),
     __metadata("design:returntype", Promise)
 ], AppUpdate.prototype, "reAddNewItem", null);
+__decorate([
+    (0, nestjs_telegraf_1.Hears)("🔍 Ism bo'yicha izlash"),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "searchByName", null);
+__decorate([
+    (0, nestjs_telegraf_1.Hears)("📱 telefon raqami bo'yicha izlash"),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "searchByNumber", null);
 __decorate([
     (0, nestjs_telegraf_1.On)('message'),
     __param(0, (0, nestjs_telegraf_1.Ctx)()),

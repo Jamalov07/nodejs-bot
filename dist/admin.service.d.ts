@@ -18,4 +18,9 @@ export declare class AdminService {
     onMessage(ctx: Context): Promise<void>;
     toMainMenu(ctx: Context): Promise<void>;
     reAddNewItem(ctx: Context): Promise<void>;
+    seeMasters(ctx: Context): Promise<void>;
+    hearsServiceFields(ctx: Context): Promise<void>;
+    searchByName(ctx: Context): Promise<void>;
+    searchByNumber(ctx: Context): Promise<void>;
+    complectMasters(ctx: Context): Promise<void>;
 }

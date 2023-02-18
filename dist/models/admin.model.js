@@ -28,6 +28,12 @@ __decorate([
     }),
     __metadata("design:type", String)
 ], Admin.prototype, "last_state", void 0);
+__decorate([
+    (0, sequelize_typescript_1.Column)({
+        type: sequelize_typescript_1.DataType.INTEGER
+    }),
+    __metadata("design:type", Number)
+], Admin.prototype, "search_master_state", void 0);
 Admin = __decorate([
     (0, sequelize_typescript_1.Table)({ tableName: 'admin' })
 ], Admin);
