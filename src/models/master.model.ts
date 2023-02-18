@@ -16,6 +16,8 @@ interface MasterAttr {
   status: boolean;
   rating: number;
   last_state: string;
+  message_id: string;
+  is_active: boolean;
 }
 @Table({ tableName: "master" })
 export class Master extends Model<Master, MasterAttr> {
@@ -56,4 +58,8 @@ export class Master extends Model<Master, MasterAttr> {
   price: string;
   @Column({ type: DataType.STRING })
   last_state: string;
+  @Column({ type: DataType.STRING })
+  message_id: string;
+  @Column({ type: DataType.STRING })
+  is_active: boolean;
 }

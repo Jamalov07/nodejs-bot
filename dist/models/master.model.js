@@ -82,6 +82,14 @@ __decorate([
     (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.STRING }),
     __metadata("design:type", String)
 ], Master.prototype, "last_state", void 0);
+__decorate([
+    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.STRING }),
+    __metadata("design:type", String)
+], Master.prototype, "message_id", void 0);
+__decorate([
+    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.STRING }),
+    __metadata("design:type", Boolean)
+], Master.prototype, "is_active", void 0);
 Master = __decorate([
     (0, sequelize_typescript_1.Table)({ tableName: "master" })
 ], Master);

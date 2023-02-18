@@ -25,7 +25,22 @@ export class AppService {
     const user = await this.userRepository.findOne({
       where: { user_id: `${ctx.from.id}` },
     });
+    const master = await this.masterRepository.findOne({
+      where: { master_id: `${ctx.from.id}` },
+    });
     if (user) {
+    } else if (master) {
+      if (master.status && master.last_state === "finish") {
+        await ctx.reply("O'zingizga kerakli bo'lgan bo'limni tanlang", {
+          parse_mode: "HTML",
+          ...Markup.keyboard([
+            ["👥 Mijozlar", "🕔 Vaqt", "📊 Reyting"],
+            ["🔄 Ma'lumotlarni o'zgartirish"],
+          ])
+            .oneTime()
+            .resize(),
+        });
+      }
     } else {
       await ctx.reply(
         "Assalomu alaykum. Hush kelibsiz, botdan birinchi martda foydalanayotganingiz uchun ro'yhatdan o'tishingiz lozim",
@@ -67,6 +82,7 @@ export class AppService {
         master_id: `${ctx.from.id}`,
         status: false,
         rating: 0,
+        is_active: true,
         last_state: "service_type",
       });
 
@@ -81,7 +97,10 @@ export class AppService {
         ]);
       }
       await ctx.reply("O'zingizning sohangizni tanlang", {
-        ...Markup.inlineKeyboard([...serviceNames]),
+        ...Markup.inlineKeyboard([
+          ...serviceNames,
+          [Markup.button.callback("❌ Bekor qilish", "delmyinfo")],
+        ]),
       });
     }
   }
@@ -98,7 +117,12 @@ export class AppService {
         });
         if (service) {
           await master.update({ service_id: service.id, last_state: "name" });
-          await ctx.reply("Ismingizni kiriting");
+          await ctx.reply("Ismingizni kiriting", {
+            parse_mode: "HTML",
+            ...Markup.keyboard([["❌ Bekor qilish"]])
+              .oneTime()
+              .resize(),
+          });
         }
       } else {
         await ctx.reply("/start");
@@ -126,7 +150,8 @@ export class AppService {
             {
               parse_mode: "HTML",
               ...Markup.keyboard([
-                Markup.button.contactRequest("📲 Raqam yuborish"),
+                [Markup.button.contactRequest("📲 Raqam yuborish")],
+                ["❌ Bekor qilish"],
               ])
                 .oneTime()
                 .resize(),
@@ -145,7 +170,7 @@ export class AppService {
               last_state: "work_end_time",
             });
             await ctx.reply(
-              "Ish tugatish vaqtingizni kiriting. Namuna (`21:00`)"
+              "Ish tugatish vaqtingizni kiriting. Namuna ( 21:00 )"
             );
           } else {
             await ctx.reply("Vaqtni ko'rsatilgan namunadek kiriting");
@@ -158,12 +183,14 @@ export class AppService {
             +time[0] <= 24 &&
             +time[1] <= 59
           ) {
+            let date =
+              ctx.message.text === "00:00" ? "24:00" : ctx.message.text;
             await master.update({
-              work_start_time: ctx.message.text,
+              work_end_time: date,
               last_state: "time_per",
             });
             await ctx.reply(
-              "Bir mijoz uchun maksimal sarflaydigan vaqtingizni minutda kiriting. maksimal 1 soat Namuna (`30`)"
+              "Bir mijoz uchun maksimal sarflaydigan vaqtingizni minutda kiriting. Maksimal 60 minut. Namuna ( 30 )"
             );
           } else {
             await ctx.reply("Vaqtni ko'rsatilgan namunadek kiriting");
@@ -175,15 +202,15 @@ export class AppService {
               last_state: "finish",
             });
             const serviceName = master.service_name
-              ? `\nUstaxona nomi: ${master.service_name}`
+              ? `\n🏛 Ustaxona nomi: ${master.service_name}`
               : "";
             const address = master.address
-              ? `\nManzili: ${master.address}`
+              ? `\n📍 Manzili: ${master.address}`
               : "";
             const target = master.target_address
               ? `\nMo'ljal: ${master.target_address}`
               : "";
-            const masterInfo = `Ismi: ${master.name}\nTelefon raqami: ${master.phone_number}${serviceName}${address}${target}`;
+            const masterInfo = `👤 Ismi: ${master.name}\n📲 Telefon raqami: ${master.phone_number}${serviceName}${address}${target}\n🕔 Ish vaqti: ${master.work_start_time} dan - ${master.work_end_time} gacha\nBir mijoz uchun tahminan ${master.time_per_work} minut sarflaydi`;
             await ctx.reply("Shaxsiy ma'lumotlaringizni tasdiqlang");
             await ctx.reply(masterInfo, {
               parse_mode: "HTML",
@@ -193,6 +220,70 @@ export class AppService {
               ]),
             });
           }
+        } else if (master.last_state === "send_message") {
+          await ctx.telegram.forwardMessage(
+            process.env.ADMIN_ID,
+            master.master_id,
+            ctx.message.message_id
+          );
+          let masterInfo = `Ismi: ${master.name}\nUsta ${master.createdAt
+            .toString()
+            .split(" ")
+            .slice(1, 5)
+            .join(" ")} da ro'yhatdan o'tgan\nHarakat: ${
+            master.is_active ? "ruhsat berilgan" : "bloklangan"
+          }\nHolati: ${master.status ? "tasdiqlangan" : "tasdiqlanmagan"}`;
+          await ctx.telegram.sendMessage(process.env.ADMIN_ID, masterInfo, {
+            parse_mode: "HTML",
+            ...Markup.inlineKeyboard([
+              [
+                Markup.button.callback(
+                  "🔓 Bloklash",
+                  `blockthis=${master.master_id}`
+                ),
+              ],
+              [
+                Markup.button.callback(
+                  "✅ Tasdiqlash",
+                  `allowto=${master.master_id}`
+                ),
+              ],
+            ]),
+          });
+          await master.update({ last_state: "finish" });
+        } else if (master.last_state === "service_name") {
+          await master.update({
+            service_name: ctx.message.text,
+            last_state: "address",
+          });
+          await ctx.reply("Ustaxona to'liq manzilini kiriting (ixtiyoriy)", {
+            parse_mode: "HTML",
+            ...Markup.keyboard([["⏭ keyingisi"], ["❌ Bekor qilish"]])
+              .oneTime()
+              .resize(),
+          });
+        } else if (master.last_state === "address") {
+          await master.update({
+            address: ctx.message.text,
+            last_state: "target_address",
+          });
+          await ctx.reply("Mo'ljalni kiriting (ixtiyoriy)", {
+            parse_mode: "HTML",
+            ...Markup.keyboard([["⏭ keyingisi"], ["❌ Bekor qilish"]])
+              .oneTime()
+              .resize(),
+          });
+        } else if (master.last_state === "target_address") {
+          await master.update({
+            target_address: ctx.message.text,
+            last_state: "location",
+          });
+          await ctx.reply("Ustaxona lokatsiyasini yuboring", {
+            parse_mode: "HTML",
+            ...Markup.keyboard([["❌ Bekor qilish"]])
+              .oneTime()
+              .resize(),
+          });
         }
       }
     }
@@ -217,7 +308,9 @@ export class AppService {
             });
             await ctx.reply("Ustaxona nomi bo'lsa kiriting (ixtiyoriy)", {
               parse_mode: "HTML",
-              ...Markup.keyboard(["⏭ keyingisi"]).oneTime().resize(),
+              ...Markup.keyboard([["⏭ keyingisi"], ["❌ Bekor qilish"]])
+                .oneTime()
+                .resize(),
             });
           }
         }
@@ -232,15 +325,19 @@ export class AppService {
     if (master) {
       if (master.last_state === "service_name") {
         master.update({ last_state: "address" });
-        await ctx.reply("Ustaxona to'liq manzilini kiriting", {
+        await ctx.reply("Ustaxona to'liq manzilini kiriting (ixtiyoriy)", {
           parse_mode: "HTML",
-          ...Markup.keyboard(["⏭ keyingisi"]).oneTime().resize(),
+          ...Markup.keyboard([["⏭ keyingisi"], ["❌ Bekor qilish"]])
+            .oneTime()
+            .resize(),
         });
       } else if (master.last_state === "address") {
         master.update({ last_state: "target_address" });
-        await ctx.reply("Mo'lljalni kiriting", {
+        await ctx.reply("Mo'ljalni kiriting (ixtiyoriy)", {
           parse_mode: "HTML",
-          ...Markup.keyboard(["⏭ keyingisi"]).oneTime().resize(),
+          ...Markup.keyboard([["⏭ keyingisi"], ["❌ Bekor qilish"]])
+            .oneTime()
+            .resize(),
         });
       } else if (master.last_state === "target_address") {
         master.update({ last_state: "location" });
@@ -265,7 +362,7 @@ export class AppService {
             location: `${ctx.message.location.latitude},${ctx.message.location.latitude}`,
             last_state: "work_start_time",
           });
-          await ctx.reply("Ish boshlash vaqtingizni kiriting. Namuna(`07:00`)");
+          await ctx.reply("Ish boshlash vaqtingizni kiriting. Namuna( 07:00 )");
         }
       }
     }
@@ -278,50 +375,47 @@ export class AppService {
     const master = await this.masterRepository.findOne({
       where: { master_id: `${ctx.from.id}` },
     });
-    if ("match" in ctx) {
-      if (user) {
-      } else if (master) {
-        if (master.last_state === "finish") {
-          const serviceName = master.service_name
-            ? `\nUstaxona nomi: ${master.service_name}`
-            : "";
-          const address = master.address ? `\nManzili: ${master.address}` : "";
-          const target = master.target_address
-            ? `\nMo'ljal: ${master.target_address}`
-            : "";
-          const masterInfo = `Ismi: ${master.name}\nTelefon raqami: ${master.phone_number}${serviceName}${address}${target}`;
+    if (user) {
+    } else if (master) {
+      if (master.last_state === "finish") {
+        const serviceName = master.service_name
+          ? `\n🏛 Ustaxona nomi: ${master.service_name}`
+          : "";
+        const address = master.address ? `\n📍 Manzili: ${master.address}` : "";
+        const target = master.target_address
+          ? `\nMo'ljal: ${master.target_address}`
+          : "";
+        const masterInfo = `👤 Ismi: ${master.name}\n📲 Telefon raqami: ${master.phone_number}${serviceName}${address}${target}\n🕔 Ish vaqti: ${master.work_start_time} dan - ${master.work_end_time} gacha\nBir mijoz uchun tahminan ${master.time_per_work} minut sarflaydi`;
+        await ctx.telegram.sendMessage(process.env.ADMIN_ID, masterInfo, {
+          parse_mode: "HTML",
+          ...Markup.inlineKeyboard([
+            [
+              Markup.button.callback(
+                "✅ Tasdiqlash",
+                `allowto=${master.master_id}`
+              ),
+            ],
+            [
+              Markup.button.callback(
+                "❌ Bekor qilish",
+                `noallow=${master.master_id}"`
+              ),
+            ],
+          ]),
+        });
 
-          await ctx.telegram.sendMessage(process.env.ADMIN_ID, masterInfo, {
+        await ctx.reply(
+          "Sizning so'rov adminga yuborildi. Holatingizni tekshirib turing",
+          {
             parse_mode: "HTML",
-            ...Markup.inlineKeyboard([
-              [
-                Markup.button.callback(
-                  "✅ Tasdiqlash",
-                  `allowto=${master.master_id}`
-                ),
-              ],
-              [
-                Markup.button.callback(
-                  "❌ Bekor qilish",
-                  `noallow=${master.master_id}"`
-                ),
-              ],
-            ]),
-          });
-
-          await ctx.reply(
-            "Sizning so'rov adminga yuborildi. Holatingizni tekshirib turing",
-            {
-              parse_mode: "HTML",
-              ...Markup.keyboard([
-                ["ℹ️ Tekshirish", "❌ Bekor qilish"],
-                ["✍️ Admin bilan bog'lanish"],
-              ])
-                .oneTime()
-                .resize(),
-            }
-          );
-        }
+            ...Markup.keyboard([
+              ["ℹ️ Tekshirish", "❌ Bekor qilish"],
+              ["✍️ Admin bilan bog'lanish"],
+            ])
+              .oneTime()
+              .resize(),
+          }
+        );
       }
     }
   }
@@ -333,11 +427,16 @@ export class AppService {
     const master = await this.masterRepository.findOne({
       where: { master_id: `${ctx.from.id}` },
     });
-    if ("match" in ctx) {
-      if (user) {
-      } else if (master) {
-        await master.destroy();
-      }
+
+    if (user) {
+    } else if (master) {
+      await master.destroy();
+      await ctx.reply("Ro'yhatdan o'tish bekor qilindi", {
+        parse_mode: "HTML",
+        ...Markup.keyboard([["👤 Ro'yhatdan o'tish"]])
+          .oneTime()
+          .resize(),
+      });
     }
   }
 
@@ -365,8 +464,8 @@ export class AppService {
         await ctx.reply("O'zingizga kerakli bo'lgan bo'limni tanlang", {
           parse_mode: "HTML",
           ...Markup.keyboard([
-            ["Mijozlar", "Vaqt", "Reyting"],
-            ["Ma'lumotlarni o'zgartirish"],
+            ["👥 Mijozlar", "🕔 Vaqt", "📊 Reyting"],
+            ["🔄 Ma'lumotlarni o'zgartirish"],
           ])
             .oneTime()
             .resize(),
@@ -382,6 +481,79 @@ export class AppService {
             .resize(),
         });
       }
+    }
+  }
+
+  async noAllow(ctx: Context) {
+    if (process.env.ADMIN_ID === String(ctx.from.id)) {
+      if ("match" in ctx) {
+        const master_id = ctx.match[0].slice(8);
+        const master = await this.masterRepository.findOne({
+          where: { master_id: master_id },
+        });
+        if (master) {
+          await ctx.reply(`${master.name} masterlar ro'yhatidan o'chirildi`);
+          await master.destroy();
+        }
+      }
+    }
+  }
+
+  async toBlock(ctx: Context) {
+    if (process.env.ADMIN_ID === String(ctx.from.id)) {
+      if ("match" in ctx) {
+        const master_id = ctx.match[0].slice(10);
+        const master = await this.masterRepository.findOne({
+          where: { master_id: master_id },
+        });
+        if (master) {
+          await master.update({ is_active: false });
+          await ctx.reply(`${master.name} bloklanganlar ro'yhatiga tushdi`);
+        }
+      }
+    }
+  }
+
+  async sendMessageToAdmin(ctx: Context) {
+    const master = await this.masterRepository.findOne({
+      where: { master_id: `${ctx.from.id}` },
+    });
+    if (master) {
+      master.update({ last_state: "send_message" });
+      await ctx.reply("Adminga yubormoqchi bo'lgan habaringizni yuboring");
+    }
+  }
+
+  async hearsMijozlarInMaster(ctx: Context) {
+    const master = await this.masterRepository.findOne({
+      where: { master_id: `${ctx.from.id}` },
+    });
+    if (master) {
+      const clients = await this.orderRepository.findAll({
+        where: {
+          master_id: master.master_id,
+          date: {
+            [Op.gt]: new Date(),
+          },
+        },
+      });
+      console.log(clients);
+      let clientsInfo = "";
+      for (let i = 0; i < clients.length; i++) {
+        const user = await this.userRepository.findOne({
+          where: { user_id: `${clients[i].user_id}` },
+        });
+        if (user) {
+          clientsInfo += `${i + 1}. ${clients[i].date
+            .split("-")
+            .slice(1)
+            .reverse()
+            .join(".")} - ${clients[i].time} / ${user.real_name} , ${
+            user.phone_number
+          }\n`;
+        }
+      }
+      await ctx.reply(clientsInfo);
     }
   }
 }

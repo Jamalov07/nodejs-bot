@@ -64,7 +64,35 @@ export class AppUpdate {
     return this.appService.confirmInAdmin(ctx);
   }
 
+  @Action(/^(noallow=\d+)/)
+  async noAllowThisMaster(@Ctx() ctx: Context) {
+    return this.appService.noAllow(ctx);
+  }
 
+  @Action(/^(blockthis=\d+)/)
+  async blockThis(@Ctx() ctx: Context) {
+    return this.appService.toBlock(ctx);
+  }
+
+  @Hears("ℹ️ Tekshirish")
+  async checkStatus(@Ctx() ctx: Context) {
+    return this.appService.checkStatusMaster(ctx);
+  }
+
+  @Hears("✍️ Admin bilan bog'lanish")
+  async sendMessage(@Ctx() ctx: Context) {
+    return this.appService.sendMessageToAdmin(ctx);
+  }
+
+  @Hears("❌ Bekor qilish")
+  async cancelRegistration(@Ctx() ctx: Context) {
+    await this.appService.cancelRegistration(ctx);
+  }
+
+  @Hears("👥 Mijozlar")
+  async hearsClients(@Ctx() ctx: Context) {
+    await this.appService.hearsMijozlarInMaster(ctx);
+  }
 
   @On("message")
   async onMessage(@Ctx() ctx: Context) {

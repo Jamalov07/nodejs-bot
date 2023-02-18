@@ -22,4 +22,8 @@ export declare class AppService {
     cancelRegistration(ctx: Context): Promise<void>;
     confirmInAdmin(ctx: Context): Promise<void>;
     checkStatusMaster(ctx: Context): Promise<void>;
+    noAllow(ctx: Context): Promise<void>;
+    toBlock(ctx: Context): Promise<void>;
+    sendMessageToAdmin(ctx: Context): Promise<void>;
+    hearsMijozlarInMaster(ctx: Context): Promise<void>;
 }

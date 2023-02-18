@@ -15,6 +15,8 @@ interface MasterAttr {
     status: boolean;
     rating: number;
     last_state: string;
+    message_id: string;
+    is_active: boolean;
 }
 export declare class Master extends Model<Master, MasterAttr> {
     master_id: string;
@@ -33,5 +35,7 @@ export declare class Master extends Model<Master, MasterAttr> {
     rating: number;
     price: string;
     last_state: string;
+    message_id: string;
+    is_active: boolean;
 }
 export {};

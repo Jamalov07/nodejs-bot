@@ -13,5 +13,11 @@ export declare class AppUpdate {
     confirm(ctx: Context): Promise<void>;
     cancelConfirm(ctx: Context): Promise<void>;
     allowThisMaster(ctx: Context): Promise<void>;
+    noAllowThisMaster(ctx: Context): Promise<void>;
+    blockThis(ctx: Context): Promise<void>;
+    checkStatus(ctx: Context): Promise<void>;
+    sendMessage(ctx: Context): Promise<void>;
+    cancelRegistration(ctx: Context): Promise<void>;
+    hearsClients(ctx: Context): Promise<void>;
     onMessage(ctx: Context): Promise<void>;
 }

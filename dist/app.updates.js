@@ -50,6 +50,24 @@ let AppUpdate = class AppUpdate {
     async allowThisMaster(ctx) {
         return this.appService.confirmInAdmin(ctx);
     }
+    async noAllowThisMaster(ctx) {
+        return this.appService.noAllow(ctx);
+    }
+    async blockThis(ctx) {
+        return this.appService.toBlock(ctx);
+    }
+    async checkStatus(ctx) {
+        return this.appService.checkStatusMaster(ctx);
+    }
+    async sendMessage(ctx) {
+        return this.appService.sendMessageToAdmin(ctx);
+    }
+    async cancelRegistration(ctx) {
+        await this.appService.cancelRegistration(ctx);
+    }
+    async hearsClients(ctx) {
+        await this.appService.hearsMijozlarInMaster(ctx);
+    }
     async onMessage(ctx) {
         return this.appService.onMessage(ctx);
     }
@@ -124,6 +142,48 @@ __decorate([
     __metadata("design:paramtypes", [telegraf_1.Context]),
     __metadata("design:returntype", Promise)
 ], AppUpdate.prototype, "allowThisMaster", null);
+__decorate([
+    (0, nestjs_telegraf_1.Action)(/^(noallow=\d+)/),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "noAllowThisMaster", null);
+__decorate([
+    (0, nestjs_telegraf_1.Action)(/^(blockthis=\d+)/),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "blockThis", null);
+__decorate([
+    (0, nestjs_telegraf_1.Hears)("ℹ️ Tekshirish"),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "checkStatus", null);
+__decorate([
+    (0, nestjs_telegraf_1.Hears)("✍️ Admin bilan bog'lanish"),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "sendMessage", null);
+__decorate([
+    (0, nestjs_telegraf_1.Hears)("❌ Bekor qilish"),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "cancelRegistration", null);
+__decorate([
+    (0, nestjs_telegraf_1.Hears)("👥 Mijozlar"),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "hearsClients", null);
 __decorate([
     (0, nestjs_telegraf_1.On)("message"),
     __param(0, (0, nestjs_telegraf_1.Ctx)()),
