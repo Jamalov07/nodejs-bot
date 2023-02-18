@@ -1,4 +1,5 @@
-import { Column, DataType, Model, Table } from "sequelize-typescript";
+import { BelongsTo, Column, DataType, ForeignKey, Model, Table } from "sequelize-typescript";
+import { Service_type } from "./service_type.model";
 
 interface MasterAttr {
   master_id: string;
@@ -11,6 +12,7 @@ interface MasterAttr {
   work_end_time: string;
   time_per_work: string;
   user_name: string;
+  last_state:string;
   status: boolean;
   rating: number;
 }
@@ -27,8 +29,11 @@ export class Master extends Model<Master, MasterAttr> {
   name: string;
   @Column({ type: DataType.STRING })
   phone_number: string;
+  @ForeignKey(() => Service_type)
   @Column({ type: DataType.INTEGER })
   service_id: number;
+  @BelongsTo(() => Service_type)
+  serviceType:Service_type;
   @Column({ type: DataType.STRING })
   address: string;
   @Column({ type: DataType.STRING })
@@ -45,6 +50,8 @@ export class Master extends Model<Master, MasterAttr> {
   status: boolean;
   @Column({ type: DataType.INTEGER })
   rating: number;
+  @Column({type:DataType.STRING})
+  last_state:string;
   @Column({ type: DataType.STRING })
   price: string;
 }

@@ -40,8 +40,23 @@ let AppUpdate = class AppUpdate {
     async toMainMenu(ctx) {
         return this.adminService.toMainMenu(ctx);
     }
+    async complectMasters(ctx) {
+        return this.adminService.complectMasters(ctx);
+    }
     async mMenu(ctx) {
         return this.adminService.toMainMenu(ctx);
+    }
+    async deleteMaster(ctx) {
+        return this.adminService.deleteMaster(ctx);
+    }
+    async deActiveMaster(ctx) {
+        return this.adminService.deActiveMaster(ctx);
+    }
+    async showStats(ctx) {
+        return this.adminService;
+    }
+    async sendMessageToMaster(ctx) {
+        return this.adminService.sendMessage(ctx);
     }
     async reAddNewItem(ctx) {
         return this.adminService.reAddNewItem(ctx);
@@ -99,12 +114,47 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AppUpdate.prototype, "toMainMenu", null);
 __decorate([
+    (0, nestjs_telegraf_1.Hears)("🛠 Yo'nalishlar ro'yxatiga qaytish"),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "complectMasters", null);
+__decorate([
     (0, nestjs_telegraf_1.Action)('mainmenu'),
     __param(0, (0, nestjs_telegraf_1.Ctx)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [telegraf_1.Context]),
     __metadata("design:returntype", Promise)
 ], AppUpdate.prototype, "mMenu", null);
+__decorate([
+    (0, nestjs_telegraf_1.Action)(/^(delmaster=\d+)/),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "deleteMaster", null);
+__decorate([
+    (0, nestjs_telegraf_1.Action)(/^(deactivemas=\d+)/),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "deActiveMaster", null);
+__decorate([
+    (0, nestjs_telegraf_1.Action)(/^(showstats=\d+)/),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "showStats", null);
+__decorate([
+    (0, nestjs_telegraf_1.Action)(/^(sendmess=\d+)/),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "sendMessageToMaster", null);
 __decorate([
     (0, nestjs_telegraf_1.Hears)("♻️ Yana qo'shish"),
     __param(0, (0, nestjs_telegraf_1.Ctx)()),

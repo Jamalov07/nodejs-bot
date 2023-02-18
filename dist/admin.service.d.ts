@@ -23,4 +23,7 @@ export declare class AdminService {
     searchByName(ctx: Context): Promise<void>;
     searchByNumber(ctx: Context): Promise<void>;
     complectMasters(ctx: Context): Promise<void>;
+    deleteMaster(ctx: Context): Promise<void>;
+    deActiveMaster(ctx: Context): Promise<void>;
+    sendMessage(ctx: Context): Promise<void>;
 }

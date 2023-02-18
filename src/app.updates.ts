@@ -35,9 +35,30 @@ export class AppUpdate {
   async toMainMenu(@Ctx() ctx:Context) {
     return this.adminService.toMainMenu(ctx);
   }
+  @Hears("🛠 Yo'nalishlar ro'yxatiga qaytish")
+  async complectMasters(@Ctx() ctx:Context){
+    return this.adminService.complectMasters(ctx);
+  }
   @Action('mainmenu')
   async mMenu(@Ctx() ctx:Context) {
     return this.adminService.toMainMenu(ctx);
+  }
+
+  @Action(/^(delmaster=\d+)/)
+  async deleteMaster(@Ctx() ctx:Context) {
+    return this.adminService.deleteMaster(ctx);
+  }
+  @Action(/^(deactivemas=\d+)/)
+  async deActiveMaster(@Ctx() ctx:Context) {
+    return this.adminService.deActiveMaster(ctx);
+  }
+  @Action(/^(showstats=\d+)/)
+  async showStats(@Ctx() ctx:Context) {
+    return this.adminService
+  }
+  @Action(/^(sendmess=\d+)/)
+  async sendMessageToMaster(@Ctx() ctx:Context) {
+    return this.adminService.sendMessage(ctx);
   }
   @Hears("♻️ Yana qo'shish")
   async reAddNewItem(@Ctx() ctx:Context) {

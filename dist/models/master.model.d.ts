@@ -10,6 +10,7 @@ interface MasterAttr {
     work_end_time: string;
     time_per_work: string;
     user_name: string;
+    last_state: string;
     status: boolean;
     rating: number;
 }
@@ -26,6 +27,7 @@ export declare class Master extends Model<Master, MasterAttr> {
     user_name: string;
     status: boolean;
     rating: number;
+    last_state: string;
     price: string;
 }
 export {};

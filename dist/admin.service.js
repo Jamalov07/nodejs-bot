@@ -98,18 +98,18 @@ let AdminService = class AdminService {
                 const data = await this.masterRepository.findOne({
                     where: {
                         name: `${ctx.message.text}`,
-                        service_id: admin.search_master_state
+                        service_id: admin.search_master_state,
+                        status: true
                     }
                 });
                 if (data) {
-                    await ctx.reply(`Ismi: ${data.name}\naddress:${data.address}\nrating:${data.rating}\ntelefon raqami:${data.phone_number}\nxizmat narxi:${data.price}`, Object.assign({ parse_mode: 'HTML' }, telegraf_1.Markup.inlineKeyboard([
+                    await ctx.reply(`Ismi: <b>${data.name}</b>\naddress:<b>${data.address}</b>\nrating:<b>${data.rating}</b>\ntelefon raqami:<b>${data.phone_number}</b>\nxizmat narxi:<b>${data.price}</b>`, Object.assign({ parse_mode: 'HTML' }, telegraf_1.Markup.inlineKeyboard([
                         [telegraf_1.Markup.button.callback("❌ Ustani o'chirish", `delmaster=${data.master_id}`)],
                         [telegraf_1.Markup.button.callback("✔️ Ustani aktiv emas qilib qo'yish", `deactivemas=${data.master_id}`)],
-                        [telegraf_1.Markup.button.callback("📊 Statistikani ko'rish", `showstats=${data.master_id}`)]
+                        [telegraf_1.Markup.button.callback("📊 Statistikani ko'rish", `showstats=${data.master_id}`)],
+                        [telegraf_1.Markup.button.callback("📝 Ustaga reklama yoki xabar yuborish", `sendmess=${data.master_id}`)],
+                        [telegraf_1.Markup.button.callback("🏠 Bosh menyu", 'mainmenu')]
                     ])));
-                    await telegraf_1.Markup.keyboard(["🏠 Bosh menyu"])
-                        .oneTime()
-                        .resize();
                 }
                 else {
                     admin.search_master_state = 0;
@@ -125,18 +125,18 @@ let AdminService = class AdminService {
                 const data = await this.masterRepository.findOne({
                     where: {
                         phone_number: ctx.message.text,
-                        service_id: admin.search_master_state
+                        service_id: admin.search_master_state,
+                        status: true
                     }
                 });
                 if (data) {
-                    await ctx.reply(`Ismi: ${data.name}\naddress:${data.address}\nrating:${data.rating}\ntelefon raqami:${data.phone_number}\nxizmat narxi:${data.price}`, Object.assign({ parse_mode: 'HTML' }, telegraf_1.Markup.inlineKeyboard([
+                    await ctx.reply(`Ismi: <b>${data.name}</b>\naddress:<b>${data.address}</b>\nrating:<b>${data.rating}</b>\ntelefon raqami:<b>${data.phone_number}</b>\nxizmat narxi:<b>${data.price}</b>`, Object.assign({ parse_mode: 'HTML' }, telegraf_1.Markup.inlineKeyboard([
                         [telegraf_1.Markup.button.callback("❌ Ustani o'chirish", `delmaster=${data.master_id}`)],
                         [telegraf_1.Markup.button.callback("✔️ Ustani aktiv emas qilib qo'yish", `deactivemas=${data.master_id}`)],
-                        [telegraf_1.Markup.button.callback("📊 Statistikani ko'rish", `showstats=${data.master_id}`)]
+                        [telegraf_1.Markup.button.callback("📊 Statistikani ko'rish", `showstats=${data.master_id}`)],
+                        [telegraf_1.Markup.button.callback("📝 Ustaga reklama yoki xabar yuborish", `sendmess=${data.master_id}`)],
+                        [telegraf_1.Markup.button.callback("🏠 Bosh menyu", 'mainmenu')]
                     ])));
-                    await telegraf_1.Markup.keyboard(["🏠 Bosh menyu"])
-                        .oneTime()
-                        .resize();
                 }
                 else {
                     admin.search_master_state = 0;
@@ -145,6 +145,15 @@ let AdminService = class AdminService {
                     await ctx.replyWithHTML(`<b>Ushbu yo'nalishda bunday raqamli user yo'q</b>`);
                     await this.complectMasters(ctx);
                 }
+            }
+        }
+        else if (admin.last_state == 'sendMessage') {
+            if ('text' in ctx.message) {
+                await ctx.telegram.sendMessage(admin.target_user_id, `<b>Xurmatli mutahassis! Sizga admin tomonidan xabar yuborildi</b>:\n${ctx.message.text}`, {
+                    parse_mode: 'HTML'
+                });
+                await ctx.reply('✍️ Ustaga xabaringiz yuborildi');
+                await this.complectMasters(ctx);
             }
         }
     }
@@ -212,6 +221,49 @@ let AdminService = class AdminService {
         }
         serviceNames.push([telegraf_1.Markup.button.callback('🏠 Bosh menyu', 'mainmenu')]);
         await ctx.reply("Ustalarning yo'nalishlaridan birini tanlang", Object.assign({}, telegraf_1.Markup.inlineKeyboard([...serviceNames])));
+    }
+    async deleteMaster(ctx) {
+        if ("match" in ctx) {
+            const id = ctx.match[0].slice(10);
+            console.log(id);
+            await this.masterRepository.destroy({
+                where: {
+                    master_id: id
+                }
+            });
+            await ctx.reply(`Usta aktivi o'chirildi`, Object.assign({ parse_mode: "HTML" }, telegraf_1.Markup.keyboard(["🏠 Bosh menyu", "🛠 Yo'nalishlar ro'yxatiga qaytish"])
+                .oneTime()
+                .resize()));
+        }
+    }
+    async deActiveMaster(ctx) {
+        if ("match" in ctx) {
+            const id = ctx.match[0].slice(12);
+            await this.masterRepository.update({
+                status: false
+            }, {
+                where: {
+                    master_id: `${id}`
+                }
+            });
+            await ctx.reply(`Usta aktivi o'chirildi`, Object.assign({ parse_mode: "HTML" }, telegraf_1.Markup.keyboard(["🏠 Bosh menyu", "🛠 Yo'nalishlar ro'yxatiga qaytish"])
+                .oneTime()
+                .resize()));
+        }
+    }
+    async sendMessage(ctx) {
+        if ("match" in ctx) {
+            const id = ctx.match[0].slice(9);
+            await this.adminRepository.update({
+                last_state: 'sendMessage',
+                target_user_id: id
+            }, {
+                where: {
+                    admin_id: `${ctx.from.id}`
+                }
+            });
+            await ctx.reply("💁‍♂️ Ustaga nima deb yozishni kiriting !");
+        }
     }
 };
 AdminService = __decorate([
