@@ -34,4 +34,6 @@ export declare class AdminService {
     seeUsers(ctx: Context): Promise<void>;
     searchUserByPhone(ctx: Context): Promise<void>;
     searchUserByName(ctx: Context): Promise<void>;
+    sendMessageAll(ctx: Context): Promise<void>;
+    sendMessageUser(ctx: Context): Promise<void>;
 }

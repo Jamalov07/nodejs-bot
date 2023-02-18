@@ -10,6 +10,10 @@ export declare class AppUpdate {
     addServiceType(ctx: Context): Promise<void>;
     seeMasters(ctx: Context): Promise<void>;
     hearsService(ctx: Context): Promise<void>;
+    sendSms(ctx: Context): Promise<void>;
+    sendSmsAll(ctx: Context): Promise<void>;
+    sendSmsUser(ctx: Context): Promise<void>;
+    sendAllSms(ctx: Context): Promise<void>;
     toMainMenu(ctx: Context): Promise<void>;
     complectMasters(ctx: Context): Promise<void>;
     mMenu(ctx: Context): Promise<void>;

@@ -31,6 +31,25 @@ export class AppUpdate {
   async hearsService(@Ctx() ctx: Context) {
     return this.adminService.hearsServiceFields(ctx);
   }
+
+  @Action('sendAllSms')
+  async sendSms(@Ctx() ctx:Context) {
+    await this.adminService.sendMessageAll(ctx);
+  }
+
+  @Hears('✍️ Hamma masterlarga xabar yuborish')
+  async sendSmsAll(@Ctx() ctx:Context) {
+    return this.adminService.sendMessageAll(ctx);
+  }
+
+  @Hears('✍️ Hamma userlarga xabar yuborish')
+  async sendSmsUser(@Ctx() ctx:Context) {
+    return this.adminService.sendMessageUser(ctx);
+  }
+  @Action('SendAllSms')
+  async sendAllSms(@Ctx() ctx:Context) {
+    return this.adminService.sendMessageAll(ctx);
+  }
   @Hears('🏠 Bosh menyu')
   async toMainMenu(@Ctx() ctx:Context) {
     return this.adminService.toMainMenu(ctx);
@@ -69,6 +88,7 @@ export class AppUpdate {
   async updateField(@Ctx() ctx:Context) {
     return this.adminService.updateFields(ctx);
   }
+
   @Hears("♻️ Yana qo'shish")
   async reAddNewItem(@Ctx() ctx:Context) {
     return this.adminService.reAddNewItem(ctx);
@@ -111,6 +131,7 @@ export class AppUpdate {
   async searchByUserByName(@Ctx() ctx:Context) {
     return this.adminService.searchUserByName(ctx);
   }
+
   @On('message')
   async onMessage(@Ctx() ctx:Context) {
     return this.adminService.onMessage(ctx);

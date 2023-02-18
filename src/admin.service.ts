@@ -10,6 +10,7 @@ import { Order } from "./models/order.model";
 import { Admin } from "./models/admin.model";
 import { messageToAdmin } from "./helpers/messageToAdmin";
 import { messageMasterMenu } from "./helpers/messageMaster.menu";
+import { messageUser } from "./helpers/messageUser";
 
 @Injectable()
 export class AdminService {
@@ -149,6 +150,7 @@ export class AdminService {
                 [Markup.button.callback("✔️ Ustani aktiv emas qilib qo'yish",`deactivemas=${data.master_id}`)],
                 [Markup.button.callback("📊 Statistikani ko'rish",`showstats=${data.master_id}`)],
                 [Markup.button.callback("📝 Ustaga reklama yoki xabar yuborish",`sendmess=${data.master_id}`)],
+                [Markup.button.callback('✍️ Hammaga xabar yuborish','sendAllSms')],
                 [Markup.button.callback("🏠 Bosh menyu",'mainmenu')]
               ])
             }
@@ -185,6 +187,52 @@ export class AdminService {
           ...Markup.keyboard(["🔄 Yana boshqa service typeni o'zgartirish","🏠 Bosh menyu"])
             .oneTime()
             .resize()
+        })
+      }
+    } else if(admin.last_state == 'userbyname') {
+        await ctx.reply('Hello')
+    } else if(admin.last_state == 'sendAllMasters') {
+        const masters = await this.masterRepository.findAll()
+        await this.adminRepository.update({
+          last_state:'finish'
+        },{
+          where:{
+            admin_id:`${ctx.from.id}`
+          }
+        })
+        if('text' in ctx.message) {
+          for(let x of masters){
+            await ctx.telegram.sendMessage(`${x.master_id}`,`<b>Xurmatli mutahassis! Admin tomonidan sizga xabar yuborildi</b>:\n ${ctx.message.text}`,{
+              parse_mode:'HTML'
+            })
+          }
+          await ctx.reply('Xabaringiz jonatildi',{
+            parse_mode:'HTML',
+            ...Markup.inlineKeyboard([
+              [Markup.button.callback('🏠 Bosh menu','mainmenu')]
+            ])
+          })
+        }
+    } else if(admin.last_state == "sendsmstouser") {
+      const users = await this.userRepository.findAll()
+      await this.adminRepository.update({
+        last_state:'finish'
+      },{
+        where:{
+          admin_id:`${ctx.from.id}`
+        }
+      })
+      if('text' in ctx.message) {
+        for(let x of users){
+          await ctx.telegram.sendMessage(`${x.user_id}`,`<b>Xurmatli foydalanuvchi! Admin tomonidan sizga xabar yuborildi</b>:\n ${ctx.message.text}`,{
+            parse_mode:'HTML'
+          })
+        }
+        await ctx.reply('Xabaringiz jonatildi',{
+          parse_mode:'HTML',
+          ...Markup.inlineKeyboard([
+            [Markup.button.callback('🏠 Bosh menu','mainmenu')]
+          ])
         })
       }
     }
@@ -224,7 +272,7 @@ export class AdminService {
       await admin.save()
       await ctx.reply('Ustani ism yoki telefon raqam bilan izlashingiz mumkin!',{
         parse_mode:'HTML',
-        ...Markup.keyboard([["🔍 Ism bo'yicha izlash"],["📱 telefon raqami bo'yicha izlash"]])
+        ...Markup.keyboard([["🔍 Ism bo'yicha izlash"],["📱 telefon raqami bo'yicha izlash","✍️ Hamma masterlarga xabar yuborish"]])
           .oneTime()
           .resize()
       })
@@ -414,7 +462,7 @@ export class AdminService {
   async seeUsers(ctx:Context) {
     await ctx.reply('Userlarni korish uchun, ism yoki telefon raqam bilan izlashingiz mumkin',{
       parse_mode:'HTML',
-      ...Markup.keyboard(["📱 Telefon raqam orqali","🔎 Ism orqali izlash"])
+      ...Markup.keyboard(["📱 Telefon raqam orqali","🔎 Ism orqali izlash","✍️ Hamma userlarga xabar yuborish"])
         .oneTime()
         .resize()
     })
@@ -440,6 +488,28 @@ export class AdminService {
       }
     })
     await ctx.replyWithHTML('💁‍♂️ <b>Marhamat, userning ismini kiriting</b>')
+  }
+
+  async sendMessageAll(ctx:Context) {
+    await this.adminRepository.update({
+      last_state:'sendAllMasters'
+    },{
+      where:{
+        admin_id:`${ctx.from.id}`
+      }
+    })
+    await ctx.reply('Marhamat xabarni kiriting')
+  }
+
+  async sendMessageUser(ctx:Context) {
+    await this.adminRepository.update({
+      last_state:'sendsmstouser'
+    },{
+      where:{
+        admin_id:`${ctx.from.id}`
+      }
+    })
+    await ctx.reply("Marhamat, xabarni kiriting!")
   }
 }
 

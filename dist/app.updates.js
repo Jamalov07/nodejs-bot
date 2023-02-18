@@ -37,6 +37,18 @@ let AppUpdate = class AppUpdate {
     async hearsService(ctx) {
         return this.adminService.hearsServiceFields(ctx);
     }
+    async sendSms(ctx) {
+        await this.adminService.sendMessageAll(ctx);
+    }
+    async sendSmsAll(ctx) {
+        return this.adminService.sendMessageAll(ctx);
+    }
+    async sendSmsUser(ctx) {
+        return this.adminService.sendMessageUser(ctx);
+    }
+    async sendAllSms(ctx) {
+        return this.adminService.sendMessageAll(ctx);
+    }
     async toMainMenu(ctx) {
         return this.adminService.toMainMenu(ctx);
     }
@@ -133,6 +145,34 @@ __decorate([
     __metadata("design:paramtypes", [telegraf_1.Context]),
     __metadata("design:returntype", Promise)
 ], AppUpdate.prototype, "hearsService", null);
+__decorate([
+    (0, nestjs_telegraf_1.Action)('sendAllSms'),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "sendSms", null);
+__decorate([
+    (0, nestjs_telegraf_1.Hears)('✍️ Hamma masterlarga xabar yuborish'),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "sendSmsAll", null);
+__decorate([
+    (0, nestjs_telegraf_1.Hears)('✍️ Hamma userlarga xabar yuborish'),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "sendSmsUser", null);
+__decorate([
+    (0, nestjs_telegraf_1.Action)('SendAllSms'),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "sendAllSms", null);
 __decorate([
     (0, nestjs_telegraf_1.Hears)('🏠 Bosh menyu'),
     __param(0, (0, nestjs_telegraf_1.Ctx)()),

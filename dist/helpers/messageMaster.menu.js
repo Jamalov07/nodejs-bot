@@ -8,6 +8,7 @@ async function messageMasterMenu(master_id, message, ctx) {
         [telegraf_1.Markup.button.callback("✔️ Ustani aktiv emas qilib qo'yish", `deactivemas=${master_id}`)],
         [telegraf_1.Markup.button.callback("📊 Statistikani ko'rish", `showstats=${master_id}`)],
         [telegraf_1.Markup.button.callback("📝 Ustaga reklama yoki xabar yuborish", `sendmess=${master_id}`)],
+        [telegraf_1.Markup.button.callback("✍️ Hamma masterlarga xabar yuborish", "sendAllSms")],
         [telegraf_1.Markup.button.callback("🏠 Bosh menyu", 'mainmenu')]
     ])));
 }
