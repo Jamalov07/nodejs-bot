@@ -19,4 +19,38 @@ export class AppService {
     @InjectModel(Order) private orderRepository: typeof Order,
     @InjectBot(MyBotName) private readonly bot: Telegraf<Context>
   ) {}
+
+  async onStart(ctx: Context) {
+    const user = await this.userRepository.findOne({
+      where: { user_id: `${ctx.from.id}` },
+    });
+    if (user) {
+    } else {
+      await ctx.reply(
+        "Assalomu alaykum. Hush kelibsiz, botdan birinchi martda foydalanayotganingiz uchun ro'yhatdan o'tishingiz lozim",
+        {
+          parse_mode: "HTML",
+          ...Markup.keyboard([["👤 Ro'yhatdan o'tish"]])
+            .oneTime()
+            .resize(),
+        }
+      );
+    }
+  }
+
+  async registration(ctx: Context) {
+    const user = await this.userRepository.findOne({
+      where: { user_id: `${ctx.from.id}` },
+    });
+
+    if (user) {
+    } else {
+      await ctx.reply("Kim bo'lib ro'yhatdan o'tasiz?", {
+        parse_mode: "HTML",
+        ...Markup.keyboard([["👨‍🚀 Usta", "🤵‍♂️ Mijoz"]])
+          .oneTime()
+          .resize(),
+      });
+    }
+  }
 }
