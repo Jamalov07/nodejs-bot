@@ -9,6 +9,8 @@ import { Master } from "./models/master.model";
 import { Order } from "./models/order.model";
 import { Service_type } from "./models/service_type.model";
 import { User } from "./models/user.model";
+import { Admin } from "./models/admin.model";
+import { AdminService } from "./admin.service";
 
 @Module({
   imports: [
@@ -23,7 +25,7 @@ import { User } from "./models/user.model";
     ConfigModule.forRoot({
       envFilePath: `.env`,
     }),
-    SequelizeModule.forFeature([User, Order, Service_type, Master]),
+    SequelizeModule.forFeature([User, Order, Service_type, Master,Admin]),
     SequelizeModule.forRoot({
       dialect: "postgres",
       host: process.env.POSTGRES_HOST,
@@ -37,6 +39,6 @@ import { User } from "./models/user.model";
     }),
   ],
 
-  providers: [AppService, AppUpdate],
+  providers: [AppService, AppUpdate,AdminService],
 })
 export class AppModule {}
