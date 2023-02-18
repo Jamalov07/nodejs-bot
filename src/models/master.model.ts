@@ -6,6 +6,8 @@ interface MasterAttr {
   phone_number: string;
   service_id: number;
   address: string;
+  target_address: string;
+  service_name: string;
   location: string;
   work_start_time: string;
   work_end_time: string;
@@ -13,6 +15,7 @@ interface MasterAttr {
   user_name: string;
   status: boolean;
   rating: number;
+  last_state: string;
 }
 @Table({ tableName: "master" })
 export class Master extends Model<Master, MasterAttr> {
@@ -27,10 +30,14 @@ export class Master extends Model<Master, MasterAttr> {
   name: string;
   @Column({ type: DataType.STRING })
   phone_number: string;
+  @Column({ type: DataType.STRING })
+  service_name: string;
   @Column({ type: DataType.INTEGER })
   service_id: number;
   @Column({ type: DataType.STRING })
   address: string;
+  @Column({ type: DataType.STRING })
+  target_address: string;
   @Column({ type: DataType.STRING })
   location: string;
   @Column({ type: DataType.STRING })
@@ -43,8 +50,10 @@ export class Master extends Model<Master, MasterAttr> {
   user_name: string;
   @Column({ type: DataType.BOOLEAN })
   status: boolean;
-  @Column({ type: DataType.INTEGER })
+  @Column({ type: DataType.DOUBLE })
   rating: number;
   @Column({ type: DataType.STRING })
   price: string;
+  @Column({ type: DataType.STRING })
+  last_state: string;
 }

@@ -9,6 +9,7 @@ interface UserAttr {
   status: boolean;
   last_state: string;
   real_name: string;
+  message_id: string;
 }
 @Table({ tableName: "user", timestamps: false })
 export class User extends Model<User, UserAttr> {
@@ -37,6 +38,10 @@ export class User extends Model<User, UserAttr> {
     type: DataType.STRING,
   })
   last_name: string;
+  @Column({
+    type: DataType.STRING,
+  })
+  message_id: string;
 
   @Column({
     type: DataType.STRING,
