@@ -5,4 +5,6 @@ export declare class AppUpdate {
     constructor(appService: AppService);
     onStart(ctx: Context): Promise<void>;
     registrtion(ctx: Context): Promise<void>;
+    hearsMaster(ctx: Context): Promise<void>;
+    hearsServiceName(ctx: Context): Promise<void>;
 }

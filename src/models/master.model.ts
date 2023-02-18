@@ -13,6 +13,7 @@ interface MasterAttr {
   user_name: string;
   status: boolean;
   rating: number;
+  last_state: string;
 }
 @Table({ tableName: "master" })
 export class Master extends Model<Master, MasterAttr> {
@@ -47,4 +48,6 @@ export class Master extends Model<Master, MasterAttr> {
   rating: number;
   @Column({ type: DataType.STRING })
   price: string;
+  @Column({ type: DataType.STRING })
+  last_state: string;
 }

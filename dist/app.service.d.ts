@@ -12,4 +12,6 @@ export declare class AppService {
     constructor(userRepository: typeof User, serviceRepository: typeof Service_type, masterRepository: typeof Master, orderRepository: typeof Order, bot: Telegraf<Context>);
     onStart(ctx: Context): Promise<void>;
     registration(ctx: Context): Promise<void>;
+    hearsMaster(ctx: Context): Promise<void>;
+    hearsServiceTypes(ctx: Context): Promise<void>;
 }

@@ -9,6 +9,7 @@ import { Op } from "sequelize";
 import { Service_type } from "./models/service_type.model";
 import { Master } from "./models/master.model";
 import { Order } from "./models/order.model";
+import { services } from "./helpers/services";
 
 @Injectable()
 export class AppService {
@@ -44,6 +45,7 @@ export class AppService {
     });
 
     if (user) {
+      //
     } else {
       await ctx.reply("Kim bo'lib ro'yhatdan o'tasiz?", {
         parse_mode: "HTML",
@@ -51,6 +53,53 @@ export class AppService {
           .oneTime()
           .resize(),
       });
+    }
+  }
+
+  async hearsMaster(ctx: Context) {
+    const master = await this.masterRepository.findOne({
+      where: { master_id: `${ctx.from.id}` },
+    });
+    if (master) {
+      //
+    } else {
+      await this.masterRepository.create({
+        master_id: `${ctx.from.id}`,
+        status: false,
+        rating: 0,
+        last_state: "service_type",
+      });
+
+      const services = await this.serviceRepository.findAll();
+      let serviceNames = [];
+      for (let i = 0; i < services.length; i++) {
+        serviceNames.push([services[i].name]);
+      }
+      await ctx.reply("O'zingizning sohangizni tanlang", {
+        ...Markup.keyboard([...serviceNames])
+          .oneTime()
+          .resize(),
+      });
+    }
+  }
+
+  async hearsServiceTypes(ctx: Context) {
+    const master = await this.masterRepository.findOne({
+      where: { master_id: `${ctx.from.id}` },
+    });
+    if ("text" in ctx.message) {
+      if (master && master.last_state === "service_type") {
+        const services = await Service_type.findAll();
+        let serviceNames = [];
+        for (let i = 0; i < services.length; i++) {
+          serviceNames.push(services[i].name);
+        }
+        if (serviceNames.includes(ctx.message.text)) {
+          console.log(ctx.message.text);
+        }
+      } else {
+        await ctx.reply("/start");
+      }
     }
   }
 }

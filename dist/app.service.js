@@ -54,6 +54,49 @@ let AppService = class AppService {
                 .resize()));
         }
     }
+    async hearsMaster(ctx) {
+        const master = await this.masterRepository.findOne({
+            where: { master_id: `${ctx.from.id}` },
+        });
+        if (master) {
+        }
+        else {
+            await this.masterRepository.create({
+                master_id: `${ctx.from.id}`,
+                status: false,
+                rating: 0,
+                last_state: "service_type",
+            });
+            const services = await this.serviceRepository.findAll();
+            let serviceNames = [];
+            for (let i = 0; i < services.length; i++) {
+                serviceNames.push([services[i].name]);
+            }
+            await ctx.reply("O'zingizning sohangizni tanlang", Object.assign({}, telegraf_1.Markup.keyboard([...serviceNames])
+                .oneTime()
+                .resize()));
+        }
+    }
+    async hearsServiceTypes(ctx) {
+        const master = await this.masterRepository.findOne({
+            where: { master_id: `${ctx.from.id}` },
+        });
+        if ("text" in ctx.message) {
+            if (master && master.last_state === "service_type") {
+                const services = await service_type_model_1.Service_type.findAll();
+                let serviceNames = [];
+                for (let i = 0; i < services.length; i++) {
+                    serviceNames.push(services[i].name);
+                }
+                if (serviceNames.includes(ctx.message.text)) {
+                    console.log(ctx.message.text);
+                }
+            }
+            else {
+                await ctx.reply("/start");
+            }
+        }
+    }
 };
 AppService = __decorate([
     (0, common_1.Injectable)(),

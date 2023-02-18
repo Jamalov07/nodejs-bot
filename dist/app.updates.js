@@ -26,6 +26,12 @@ let AppUpdate = class AppUpdate {
     async registrtion(ctx) {
         return this.appService.registration(ctx);
     }
+    async hearsMaster(ctx) {
+        return this.appService.hearsMaster(ctx);
+    }
+    async hearsServiceName(ctx) {
+        return this.appService.hearsServiceTypes(ctx);
+    }
 };
 __decorate([
     (0, nestjs_telegraf_1.Start)(),
@@ -41,6 +47,20 @@ __decorate([
     __metadata("design:paramtypes", [telegraf_1.Context]),
     __metadata("design:returntype", Promise)
 ], AppUpdate.prototype, "registrtion", null);
+__decorate([
+    (0, nestjs_telegraf_1.Hears)("👨‍🚀 Usta"),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "hearsMaster", null);
+__decorate([
+    (0, nestjs_telegraf_1.Hears)(["sartarosh", "gozallik saloni"]),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "hearsServiceName", null);
 AppUpdate = __decorate([
     (0, nestjs_telegraf_1.Update)(),
     __metadata("design:paramtypes", [app_service_1.AppService])
