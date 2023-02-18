@@ -1,22 +1,14 @@
 import { Op } from "sequelize";
 import { Markup } from "telegraf";
 
-export async function searchMasterName(
-  ctx,
-  user,
-  masterRepo,
-  count,
-  searchName
-) {
+export async function searchMasterRating(ctx, user, masterRepo, count) {
   const results = await masterRepo.findAll({
     offset: 10 * count,
     limit: 10,
     where: {
-      [Op.and]: [
-        { service_id: +user.last_state.split("-")[1] },
-        { name: { [Op.iLike]: `%${searchName}%` } },
-      ],
+      service_id: +user.last_state.split("-")[1],
     },
+    order: [["rating", "DESC"]],
   });
   const masters = [];
 
@@ -35,25 +27,25 @@ export async function searchMasterName(
     masters.push([
       {
         text: "⏪ Orqaga",
-        callback_data: `prevMastersName-${count - 1}-${searchName}`,
+        callback_data: `prevMastersRating-${count - 1}`,
       },
       {
         text: "keyingisi ⏩",
-        callback_data: `prevMastersName-${count + 1}-${searchName}`,
+        callback_data: `prevMastersRating-${count + 1}`,
       },
     ]);
   } else if (results.length == 10) {
     masters.push([
       {
         text: "keyingisi ⏩",
-        callback_data: `prevMastersName-${count + 1}-${searchName}`,
+        callback_data: `prevMastersRating-${count + 1}`,
       },
     ]);
   } else if (results.length < 10) {
     masters.push([
       {
         text: "⏪ Orqaga",
-        callback_data: `prevMastersName-${count - 1}-${searchName}`,
+        callback_data: `prevMastersRating-${count - 1}`,
       },
     ]);
   }
@@ -69,30 +61,17 @@ export async function searchMasterName(
     }
   );
 }
-export async function searchMasterNameFirst(
-  ctx,
-  user,
-  masterRepo,
-  count,
-  searchName
-) {
+export async function searchMasterRatingFirst(ctx, user, masterRepo, count) {
   const results = await masterRepo.findAll({
     offset: 10 * count,
     limit: 10,
     where: {
-      [Op.and]: [
-        { service_id: +user.last_state.split("-")[1] },
-        { name: { [Op.iLike]: `%${searchName}%` } },
-      ],
+      service_id: +user.last_state.split("-")[1],
     },
+    order: [["rating", "DESC"]],
   });
   const masters = [];
-  console.log(results.length);
-  if (!results.length) {
-    return await ctx.reply("Hechkim topilmadi, Qaytadan urinib ko'ring");
-  }
-  user.message_id = String(ctx.message.message_id + 1);
-  await user.save();
+
   for (let i = 0; i < results.length; i++) {
     masters.push([
       {
@@ -108,25 +87,25 @@ export async function searchMasterNameFirst(
     masters.push([
       {
         text: "⏪ Orqaga",
-        callback_data: `prevMastersName-${count - 1}-${searchName}`,
+        callback_data: `prevMastersRating-${count - 1}`,
       },
       {
         text: "keyingisi ⏩",
-        callback_data: `prevMastersName-${count + 1}-${searchName}`,
+        callback_data: `prevMastersRating-${count + 1}`,
       },
     ]);
   } else if (results.length == 10) {
     masters.push([
       {
         text: "keyingisi ⏩",
-        callback_data: `prevMastersName-${count + 1}-${searchName}`,
+        callback_data: `prevMastersRating-${count + 1}`,
       },
     ]);
   } else if (results.length < 10 && count != 0) {
     masters.push([
       {
         text: "⏪ Orqaga",
-        callback_data: `prevMastersName-${count - 1}-${searchName}`,
+        callback_data: `prevMastersRating-${count - 1}`,
       },
     ]);
   }

@@ -17,6 +17,7 @@ export async function select_service_data(ctx: Context) {
       ["ISMI 📝"],
       ["REYTING ⭐️"],
       ["Lokatsiya 📍"],
+      ["orqaga ↩️"],
     ]).resize(),
   });
 }

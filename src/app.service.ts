@@ -22,7 +22,14 @@ import {
   select_service_data,
 } from "./helpers/changeMijozData";
 import { services_mijoz } from "./helpers/services";
-import { searchMasterName, searchMasterNameFirst } from "./helpers/searchMasterName";
+import {
+  searchMasterName,
+  searchMasterNameFirst,
+} from "./helpers/searchMasterName";
+import {
+  searchMasterRating,
+  searchMasterRatingFirst,
+} from "./helpers/searchRatingMaster";
 
 @Injectable()
 export class AppService {
@@ -99,9 +106,14 @@ export class AppService {
         );
       } else if (user.last_state.split("-")[0] === "searchNameService") {
         const searchName = ctx.message.text;
-        user.message_id = String(ctx.message.message_id + 1);
-        await user.save();
-        await searchMasterNameFirst(ctx, user, this.masterRepository, 0, searchName);
+       console.log("salom");
+        await searchMasterNameFirst(
+          ctx,
+          user,
+          this.masterRepository,
+          0,
+          searchName
+        );
       }
     }
   }
@@ -121,6 +133,22 @@ export class AppService {
       this.masterRepository,
       +ctx.match["input"].split("-")[1],
       ctx.match["input"].split("-")[2]
+    );
+  }
+  async onPaginationRating(ctx) {
+    let user = await this.userRepository.findOne({
+      where: { user_id: String(ctx.from.id) },
+    });
+
+    if (!user) {
+      return boshMenu(ctx);
+    }
+
+    await searchMasterRating(
+      ctx,
+      user,
+      this.masterRepository,
+      +ctx.match["input"].split("-")[1]
     );
   }
 
@@ -164,7 +192,6 @@ export class AppService {
       return boshMenu(ctx);
     }
     if (user.last_state == "main_mijoz") {
-      console.log("salom");
       user.last_state = "change_mijoz";
       await user.save();
       await change_mijoz_data(ctx);
@@ -221,12 +248,16 @@ export class AppService {
       user.last_state = "change_mijoz";
       await user.save();
       await change_mijoz_data(ctx);
+    } else if (user.last_state.split("-")[0] == "service") {
+      user.last_state = "main_mijoz";
+      await user.save();
+      await mainMijoz(ctx);
     } else if (
       user.last_state.split("-")[0] == "searchNameService" ||
       user.last_state.split("-")[0] == "searchRatingService" ||
       user.last_state.split("-")[0] == "searchLocationService"
     ) {
-      user.last_state = "service-" + user.last_state.split("-")[0];
+      user.last_state = "service-" + user.last_state.split("-")[1];
       await user.save();
       await select_service_data(ctx);
     }
@@ -272,6 +303,7 @@ export class AppService {
         ["ISMI 📝"],
         ["REYTING ⭐️"],
         ["Lokatsiya 📍"],
+        ["orqaga ↩️"],
       ]).resize(),
     });
   }
@@ -289,6 +321,26 @@ export class AppService {
       user.last_state = "searchNameService-" + user.last_state.split("-")[1];
       await user.save();
       await search_mijoz_ism(ctx);
+    }
+  }
+  async serachRatingMijoz(ctx) {
+    let user = await this.userRepository.findOne({
+      where: { user_id: String(ctx.from.id) },
+    });
+
+    if (!user) {
+      return boshMenu(ctx);
+    }
+
+    if (user.last_state.split("-")[0] === "service") {
+      user.last_state = "searchRatingService-" + user.last_state.split("-")[1];
+      await ctx.reply("Reyting bo'yicha:", {
+        parse_mode: "HTML",
+        ...Markup.keyboard([["orqaga ↩️"]]).resize(),
+      });
+      await searchMasterRatingFirst(ctx, user, this.masterRepository, 0);
+      user.message_id = String(ctx.message.message_id + 2);
+      await user.save();
     }
   }
 }

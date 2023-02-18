@@ -46,6 +46,10 @@ export class AppUpdate {
   async searchNameService(@Ctx() ctx: Context) {
     return this.appService.serachNameMijoz(ctx);
   }
+  @Hears("REYTING ⭐️")
+  async searchRatingService(@Ctx() ctx: Context) {
+    return this.appService.serachRatingMijoz(ctx);
+  }
   @Action(/^(service-\d+)/)
   async selectService(@Ctx() ctx: Context) {
     console.log("salom");
@@ -55,6 +59,11 @@ export class AppUpdate {
   async prevMastersName(@Ctx() ctx: Context) {
     console.log("salom");
     return this.appService.onPaginationName(ctx);
+  }
+  @Action(/(prevMastersRating-[^c])/)
+  async prevMastersRating(@Ctx() ctx: Context) {
+    console.log("salom");
+    return this.appService.onPaginationRating(ctx);
   }
   @On("contact")
   async onContact(@Ctx() ctx: Context) {
