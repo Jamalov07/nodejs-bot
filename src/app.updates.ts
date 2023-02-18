@@ -54,7 +54,7 @@ export class AppUpdate {
   }
   @Action(/^(showstats=\d+)/)
   async showStats(@Ctx() ctx:Context) {
-    return this.adminService
+    return this.adminService.showStatics(ctx);
   }
   @Action(/^(sendmess=\d+)/)
   async sendMessageToMaster(@Ctx() ctx:Context) {

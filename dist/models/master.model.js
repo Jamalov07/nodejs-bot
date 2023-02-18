@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Master = void 0;
 const sequelize_typescript_1 = require("sequelize-typescript");
+const service_type_model_1 = require("./service_type.model");
 let Master = class Master extends sequelize_typescript_1.Model {
 };
 __decorate([
@@ -31,9 +32,14 @@ __decorate([
     __metadata("design:type", String)
 ], Master.prototype, "phone_number", void 0);
 __decorate([
+    (0, sequelize_typescript_1.ForeignKey)(() => service_type_model_1.Service_type),
     (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.INTEGER }),
     __metadata("design:type", Number)
 ], Master.prototype, "service_id", void 0);
+__decorate([
+    (0, sequelize_typescript_1.BelongsTo)(() => service_type_model_1.Service_type),
+    __metadata("design:type", service_type_model_1.Service_type)
+], Master.prototype, "serviceType", void 0);
 __decorate([
     (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.STRING }),
     __metadata("design:type", String)

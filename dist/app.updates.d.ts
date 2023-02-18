@@ -15,7 +15,7 @@ export declare class AppUpdate {
     mMenu(ctx: Context): Promise<void>;
     deleteMaster(ctx: Context): Promise<void>;
     deActiveMaster(ctx: Context): Promise<void>;
-    showStats(ctx: Context): Promise<AdminService>;
+    showStats(ctx: Context): Promise<void>;
     sendMessageToMaster(ctx: Context): Promise<void>;
     reAddNewItem(ctx: Context): Promise<void>;
     searchByName(ctx: Context): Promise<void>;

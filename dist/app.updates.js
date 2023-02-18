@@ -53,7 +53,7 @@ let AppUpdate = class AppUpdate {
         return this.adminService.deActiveMaster(ctx);
     }
     async showStats(ctx) {
-        return this.adminService;
+        return this.adminService.showStatics(ctx);
     }
     async sendMessageToMaster(ctx) {
         return this.adminService.sendMessage(ctx);

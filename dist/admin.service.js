@@ -24,6 +24,7 @@ const master_model_1 = require("./models/master.model");
 const order_model_1 = require("./models/order.model");
 const admin_model_1 = require("./models/admin.model");
 const messageToAdmin_1 = require("./helpers/messageToAdmin");
+const messageMaster_menu_1 = require("./helpers/messageMaster.menu");
 let AdminService = class AdminService {
     constructor(userRepository, serviceRepository, masterRepository, orderRepository, adminRepository, bot) {
         this.userRepository = userRepository;
@@ -143,7 +144,7 @@ let AdminService = class AdminService {
                     admin.last_state = 'finish';
                     await admin.save();
                     await ctx.replyWithHTML(`<b>Ushbu yo'nalishda bunday raqamli user yo'q</b>`);
-                    await this.complectMasters(ctx);
+                    await (0, messageMaster_menu_1.messageMasterMenu)(data.master_id, 'Yonalishlardan birini tanlashingiz mumkin', ctx);
                 }
             }
         }
@@ -209,7 +210,7 @@ let AdminService = class AdminService {
                 admin_id: `${ctx.from.id}`
             }
         });
-        await ctx.reply('💁‍♂️ Marhamat telefon raqamini kiriting');
+        await ctx.reply('💁‍♂️ Marhamat telefon raqamini kiriting\n Misol uchun : +998901234567');
     }
     async complectMasters(ctx) {
         const services = await this.serviceRepository.findAll();
@@ -263,6 +264,29 @@ let AdminService = class AdminService {
                 }
             });
             await ctx.reply("💁‍♂️ Ustaga nima deb yozishni kiriting !");
+        }
+    }
+    async showStatics(ctx) {
+        if ("match" in ctx) {
+            const id = ctx.match[0].slice(10);
+            const order = await this.orderRepository.findAll({
+                where: {
+                    master_id: id
+                }, include: { all: true }
+            });
+            const master = await this.masterRepository.findAll({
+                where: {
+                    master_id: id
+                }, include: { all: true }
+            });
+            const myString = master[0].dataValues.price;
+            const myNumber = parseFloat(myString.replace(/[^\d.]/g, ''));
+            const countSum = myNumber * order.length;
+            const countTax = ((countSum * 30) / 100) * 5;
+            await ctx.reply(`🔄 <b>Zakazlar soni</b> : ${order.length}\n💸 <b>narxi:</b>${master[0].dataValues.price}\n<b>🤑 Tahminan kunlik ishlaydigan summasi:</b>${countSum} ming so'm\n💰 <b>Ustadan necha pul soliq olish mumkin:</b>${countTax}ming so'm\n<b>💵 Tahminan oylik summasi</b>:${(countSum * 30) / 1000} million so'm`, {
+                parse_mode: 'HTML'
+            });
+            await (0, messageMaster_menu_1.messageMasterMenu)(master[0].dataValues.master_id, 'Yonalishlardan birini tanlashingiz mumkin', ctx);
         }
     }
 };

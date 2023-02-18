@@ -1,4 +1,5 @@
 import { Model } from "sequelize-typescript";
+import { Service_type } from "./service_type.model";
 interface MasterAttr {
     master_id: string;
     name: string;
@@ -19,6 +20,7 @@ export declare class Master extends Model<Master, MasterAttr> {
     name: string;
     phone_number: string;
     service_id: number;
+    serviceType: Service_type;
     address: string;
     location: string;
     work_start_time: string;
