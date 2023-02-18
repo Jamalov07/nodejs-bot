@@ -17,8 +17,15 @@ export declare class AppUpdate {
     deActiveMaster(ctx: Context): Promise<void>;
     showStats(ctx: Context): Promise<void>;
     sendMessageToMaster(ctx: Context): Promise<void>;
+    deleteField(ctx: Context): Promise<void>;
+    updateField(ctx: Context): Promise<void>;
     reAddNewItem(ctx: Context): Promise<void>;
     searchByName(ctx: Context): Promise<void>;
+    changeFields(ctx: Context): Promise<void>;
+    reChangeServiceType(ctx: Context): Promise<void>;
+    reDeleteServiceType(ctx: Context): Promise<void>;
+    deleteFields(ctx: Context): Promise<void>;
     searchByNumber(ctx: Context): Promise<void>;
+    clients(ctx: Context): Promise<AdminService>;
     onMessage(ctx: Context): Promise<void>;
 }

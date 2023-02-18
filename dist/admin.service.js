@@ -104,6 +104,13 @@ let AdminService = class AdminService {
                     }
                 });
                 if (data) {
+                    await this.adminRepository.update({
+                        last_state: 'finish'
+                    }, {
+                        where: {
+                            admin_id: `${ctx.from.id}`
+                        }
+                    });
                     await ctx.reply(`Ismi: <b>${data.name}</b>\naddress:<b>${data.address}</b>\nrating:<b>${data.rating}</b>\ntelefon raqami:<b>${data.phone_number}</b>\nxizmat narxi:<b>${data.price}</b>`, Object.assign({ parse_mode: 'HTML' }, telegraf_1.Markup.inlineKeyboard([
                         [telegraf_1.Markup.button.callback("❌ Ustani o'chirish", `delmaster=${data.master_id}`)],
                         [telegraf_1.Markup.button.callback("✔️ Ustani aktiv emas qilib qo'yish", `deactivemas=${data.master_id}`)],
@@ -155,6 +162,22 @@ let AdminService = class AdminService {
                 });
                 await ctx.reply('✍️ Ustaga xabaringiz yuborildi');
                 await this.complectMasters(ctx);
+            }
+        }
+        else if (admin.last_state == "updatefield") {
+            if ('text' in ctx.message) {
+                await this.serviceRepository.update({
+                    name: String(ctx.message.text)
+                }, {
+                    where: {
+                        id: admin.target_service_type_id
+                    }
+                });
+                admin.last_state = 'finish';
+                await admin.save();
+                await ctx.reply('Muvvafiqatli ozgartirildi !\n Davom etish uchun quyidagi buttonlardan birini tanlang', Object.assign({ parse_mode: 'HTML' }, telegraf_1.Markup.keyboard(["🔄 Yana boshqa service typeni o'zgartirish", "🏠 Bosh menyu"])
+                    .oneTime()
+                    .resize()));
             }
         }
     }
@@ -287,6 +310,54 @@ let AdminService = class AdminService {
                 parse_mode: 'HTML'
             });
             await (0, messageMaster_menu_1.messageMasterMenu)(master[0].dataValues.master_id, 'Yonalishlardan birini tanlashingiz mumkin', ctx);
+        }
+    }
+    async changeFields(ctx) {
+        const services = await this.serviceRepository.findAll();
+        let serviceNames = [];
+        for (let i = 0; i < services.length; i++) {
+            serviceNames.push([
+                telegraf_1.Markup.button.callback(services[i].name, `changefield=${services[i].id}`),
+            ]);
+        }
+        await ctx.reply("O'zgartirish uchun sohani tanlang", Object.assign({}, telegraf_1.Markup.inlineKeyboard([...serviceNames])));
+    }
+    async deleteFields(ctx) {
+        const services = await this.serviceRepository.findAll();
+        let serviceNames = [];
+        for (let i = 0; i < services.length; i++) {
+            serviceNames.push([
+                telegraf_1.Markup.button.callback(services[i].name, `deletefield=${services[i].id}`),
+            ]);
+        }
+        await ctx.reply("O'chirish uchun sohani tanlang", Object.assign({}, telegraf_1.Markup.inlineKeyboard([...serviceNames])));
+    }
+    async removeFields(ctx) {
+        if ("match" in ctx) {
+            const id = ctx.match[0].slice(12);
+            await this.serviceRepository.destroy({
+                where: {
+                    id: +id
+                }
+            });
+            await ctx.reply(`Service turi o'chirildi`, Object.assign({ parse_mode: 'HTML' }, telegraf_1.Markup.keyboard(["🗑 Yana boshqa service turini o'chirib tashlash", "🏠 Bosh menyu"])
+                .oneTime()
+                .resize()));
+        }
+    }
+    async updateFields(ctx) {
+        if ("match" in ctx) {
+            const id = ctx.match[0].slice(12);
+            console.log(id);
+            await this.adminRepository.update({
+                last_state: 'updatefield',
+                target_service_type_id: id
+            }, {
+                where: {
+                    admin_id: ctx.from.id
+                }
+            });
+            await ctx.reply('💁‍♂️ Marhamat, yangi nomni yozing');
         }
     }
 };

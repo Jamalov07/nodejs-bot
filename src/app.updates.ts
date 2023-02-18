@@ -60,6 +60,15 @@ export class AppUpdate {
   async sendMessageToMaster(@Ctx() ctx:Context) {
     return this.adminService.sendMessage(ctx);
   }
+
+  @Action(/^(deletefield=\d+)/)
+  async deleteField(@Ctx() ctx:Context) {
+    return this.adminService.removeFields(ctx);
+  }
+  @Action(/^(changefield=\d+)/)
+  async updateField(@Ctx() ctx:Context) {
+    return this.adminService.updateFields(ctx);
+  }
   @Hears("♻️ Yana qo'shish")
   async reAddNewItem(@Ctx() ctx:Context) {
     return this.adminService.reAddNewItem(ctx);
@@ -69,9 +78,29 @@ export class AppUpdate {
   async searchByName(@Ctx() ctx:Context) {
     return this.adminService.searchByName(ctx);
   }
+  @Hears('🛂 Tahrirlash')
+  async changeFields(@Ctx() ctx:Context) {
+    return this.adminService.changeFields(ctx);
+  }
+  @Hears("🔄 Yana boshqa service typeni o'zgartirish")
+  async reChangeServiceType(@Ctx() ctx:Context) {
+    return this.adminService.changeFields(ctx);
+  }
+  @Hears("🗑 Yana boshqa service turini o'chirib tashlash")
+  async reDeleteServiceType(@Ctx() ctx:Context) {
+    return this.adminService.deleteFields(ctx);
+  }
+  @Hears("🗑 O'chirib tashlash")
+  async deleteFields(@Ctx() ctx:Context) {
+    return this.adminService.deleteFields(ctx);
+  }
   @Hears("📱 telefon raqami bo'yicha izlash")
   async searchByNumber(@Ctx() ctx:Context) {
     return this.adminService.searchByNumber(ctx);
+  }
+  @Hears('🙍‍♂️ Mijozlar')
+  async clients(@Ctx() ctx:Context){
+    return this.adminService
   }
   @On('message')
   async onMessage(@Ctx() ctx:Context) {

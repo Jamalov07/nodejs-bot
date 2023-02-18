@@ -40,6 +40,12 @@ __decorate([
     }),
     __metadata("design:type", String)
 ], Admin.prototype, "target_user_id", void 0);
+__decorate([
+    (0, sequelize_typescript_1.Column)({
+        type: sequelize_typescript_1.DataType.STRING
+    }),
+    __metadata("design:type", String)
+], Admin.prototype, "target_service_type_id", void 0);
 Admin = __decorate([
     (0, sequelize_typescript_1.Table)({ tableName: 'admin' })
 ], Admin);

@@ -58,14 +58,35 @@ let AppUpdate = class AppUpdate {
     async sendMessageToMaster(ctx) {
         return this.adminService.sendMessage(ctx);
     }
+    async deleteField(ctx) {
+        return this.adminService.removeFields(ctx);
+    }
+    async updateField(ctx) {
+        return this.adminService.updateFields(ctx);
+    }
     async reAddNewItem(ctx) {
         return this.adminService.reAddNewItem(ctx);
     }
     async searchByName(ctx) {
         return this.adminService.searchByName(ctx);
     }
+    async changeFields(ctx) {
+        return this.adminService.changeFields(ctx);
+    }
+    async reChangeServiceType(ctx) {
+        return this.adminService.changeFields(ctx);
+    }
+    async reDeleteServiceType(ctx) {
+        return this.adminService.deleteFields(ctx);
+    }
+    async deleteFields(ctx) {
+        return this.adminService.deleteFields(ctx);
+    }
     async searchByNumber(ctx) {
         return this.adminService.searchByNumber(ctx);
+    }
+    async clients(ctx) {
+        return this.adminService;
     }
     async onMessage(ctx) {
         return this.adminService.onMessage(ctx);
@@ -156,6 +177,20 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AppUpdate.prototype, "sendMessageToMaster", null);
 __decorate([
+    (0, nestjs_telegraf_1.Action)(/^(deletefield=\d+)/),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "deleteField", null);
+__decorate([
+    (0, nestjs_telegraf_1.Action)(/^(changefield=\d+)/),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "updateField", null);
+__decorate([
     (0, nestjs_telegraf_1.Hears)("♻️ Yana qo'shish"),
     __param(0, (0, nestjs_telegraf_1.Ctx)()),
     __metadata("design:type", Function),
@@ -170,12 +205,47 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AppUpdate.prototype, "searchByName", null);
 __decorate([
+    (0, nestjs_telegraf_1.Hears)('🛂 Tahrirlash'),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "changeFields", null);
+__decorate([
+    (0, nestjs_telegraf_1.Hears)("🔄 Yana boshqa service typeni o'zgartirish"),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "reChangeServiceType", null);
+__decorate([
+    (0, nestjs_telegraf_1.Hears)("🗑 Yana boshqa service turini o'chirib tashlash"),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "reDeleteServiceType", null);
+__decorate([
+    (0, nestjs_telegraf_1.Hears)("🗑 O'chirib tashlash"),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "deleteFields", null);
+__decorate([
     (0, nestjs_telegraf_1.Hears)("📱 telefon raqami bo'yicha izlash"),
     __param(0, (0, nestjs_telegraf_1.Ctx)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [telegraf_1.Context]),
     __metadata("design:returntype", Promise)
 ], AppUpdate.prototype, "searchByNumber", null);
+__decorate([
+    (0, nestjs_telegraf_1.Hears)('🙍‍♂️ Mijozlar'),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "clients", null);
 __decorate([
     (0, nestjs_telegraf_1.On)('message'),
     __param(0, (0, nestjs_telegraf_1.Ctx)()),

@@ -27,4 +27,8 @@ export declare class AdminService {
     deActiveMaster(ctx: Context): Promise<void>;
     sendMessage(ctx: Context): Promise<void>;
     showStatics(ctx: Context): Promise<void>;
+    changeFields(ctx: Context): Promise<void>;
+    deleteFields(ctx: Context): Promise<void>;
+    removeFields(ctx: Context): Promise<void>;
+    updateFields(ctx: Context): Promise<void>;
 }

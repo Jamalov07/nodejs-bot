@@ -5,6 +5,7 @@ interface adminAttr {
   last_state:string;
   target_user_id:string;
   search_master_state:number;
+  target_service_type_id:number;
 }
 
 @Table({tableName:'admin'})
@@ -31,4 +32,9 @@ export class Admin extends Model<Admin,adminAttr> {
     type:DataType.STRING
   })
   target_user_id:string;
+
+  @Column({
+    type:DataType.STRING
+  })
+  target_service_type_id:string;
 }
