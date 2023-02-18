@@ -10,6 +10,8 @@ interface UserAttr {
   last_state: string;
   real_name: string;
   message_id: string;
+  location: string;
+  distance: string;
 }
 @Table({ tableName: "user", timestamps: false })
 export class User extends Model<User, UserAttr> {
@@ -51,6 +53,14 @@ export class User extends Model<User, UserAttr> {
     type: DataType.STRING,
   })
   last_state: string;
+  @Column({
+    type: DataType.STRING,
+  })
+  location: string;
+  @Column({
+    type: DataType.STRING,
+  })
+  distance: string;
   @Column({
     type: DataType.BOOLEAN,
     defaultValue: false,

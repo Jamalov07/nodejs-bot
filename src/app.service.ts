@@ -30,6 +30,8 @@ import {
   searchMasterRating,
   searchMasterRatingFirst,
 } from "./helpers/searchRatingMaster";
+import { search_mijoz_location } from "./helpers/searchMasterLocation";
+import { getDistance } from "./helpers/distance";
 
 @Injectable()
 export class AppService {
@@ -106,7 +108,7 @@ export class AppService {
         );
       } else if (user.last_state.split("-")[0] === "searchNameService") {
         const searchName = ctx.message.text;
-       console.log("salom");
+        console.log("salom");
         await searchMasterNameFirst(
           ctx,
           user,
@@ -341,6 +343,54 @@ export class AppService {
       await searchMasterRatingFirst(ctx, user, this.masterRepository, 0);
       user.message_id = String(ctx.message.message_id + 2);
       await user.save();
+    }
+  }
+  async getLocation(ctx) {
+    let user = await this.userRepository.findOne({
+      where: { user_id: String(ctx.from.id) },
+    });
+
+    if (!user) {
+      return boshMenu(ctx);
+    }
+    const lon = ctx.message.location.longitude;
+    const lat = ctx.message.location.latitude;
+    user.location = `${lat},${lon}`;
+    const results = await this.masterRepository.findAll({
+      where: {
+        service_id: +user.last_state.split("-")[1],
+      },
+    });
+    const distances = [];
+    results.forEach(async (result) => {
+      let to_lat = result.location.split(",")[0];
+      let to_lon = result.location.split(",")[1];
+      const distance = await getDistance(lat, lon, to_lat, to_lon);
+      distances.push({
+        id: result.master_id,
+        distance: distance,
+        name: result.name,
+      });
+    });
+
+    distances.sort((a, b) => a.distance - b.distance);
+    user.distance = JSON.stringify(distances);
+    await user.save();
+  }
+
+  async onLocation(ctx) {
+    let user = await this.userRepository.findOne({
+      where: { user_id: String(ctx.from.id) },
+    });
+
+    if (!user) {
+      return boshMenu(ctx);
+    }
+
+    if (user.last_state.split("-")[0] === "service") {
+      user.last_state = "searchNameLocation-" + user.last_state.split("-")[1];
+      await user.save();
+      await search_mijoz_location(ctx);
     }
   }
 }
