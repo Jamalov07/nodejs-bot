@@ -26,6 +26,8 @@ export declare class AppUpdate {
     reDeleteServiceType(ctx: Context): Promise<void>;
     deleteFields(ctx: Context): Promise<void>;
     searchByNumber(ctx: Context): Promise<void>;
-    clients(ctx: Context): Promise<AdminService>;
+    clients(ctx: Context): Promise<void>;
+    searchUserByPhone(ctx: Context): Promise<void>;
+    searchByUserByName(ctx: Context): Promise<void>;
     onMessage(ctx: Context): Promise<void>;
 }

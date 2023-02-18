@@ -410,6 +410,37 @@ export class AdminService {
       await ctx.reply('💁‍♂️ Marhamat, yangi nomni yozing')
     }
   }
+
+  async seeUsers(ctx:Context) {
+    await ctx.reply('Userlarni korish uchun, ism yoki telefon raqam bilan izlashingiz mumkin',{
+      parse_mode:'HTML',
+      ...Markup.keyboard(["📱 Telefon raqam orqali","🔎 Ism orqali izlash"])
+        .oneTime()
+        .resize()
+    })
+  }
+
+  async searchUserByPhone(ctx:Context) {
+    await this.adminRepository.update({
+      last_state:'userbyphone',
+    },{
+      where:{
+        admin_id:`${ctx.from.id}`
+      }
+    })
+    await ctx.replyWithHTML('💁‍♂️ <b>Marhamat, userning telefon raqamini kiriting</b>')
+  }
+
+  async searchUserByName(ctx:Context) {
+    await this.adminRepository.update({
+      last_state:'userbyname',
+    },{
+      where:{
+        admin_id:`${ctx.from.id}`
+      }
+    })
+    await ctx.replyWithHTML('💁‍♂️ <b>Marhamat, userning ismini kiriting</b>')
+  }
 }
 
 

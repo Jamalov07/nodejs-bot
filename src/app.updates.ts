@@ -100,7 +100,16 @@ export class AppUpdate {
   }
   @Hears('🙍‍♂️ Mijozlar')
   async clients(@Ctx() ctx:Context){
-    return this.adminService
+    return this.adminService.seeUsers(ctx);
+  }
+  @Hears('📱 Telefon raqam orqali')
+  async searchUserByPhone(@Ctx() ctx:Context) {
+    return this.adminService.searchUserByPhone(ctx);
+  }
+
+  @Hears('🔎 Ism orqali izlash')
+  async searchByUserByName(@Ctx() ctx:Context) {
+    return this.adminService.searchUserByName(ctx);
   }
   @On('message')
   async onMessage(@Ctx() ctx:Context) {

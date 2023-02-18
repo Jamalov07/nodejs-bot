@@ -86,7 +86,13 @@ let AppUpdate = class AppUpdate {
         return this.adminService.searchByNumber(ctx);
     }
     async clients(ctx) {
-        return this.adminService;
+        return this.adminService.seeUsers(ctx);
+    }
+    async searchUserByPhone(ctx) {
+        return this.adminService.searchUserByPhone(ctx);
+    }
+    async searchByUserByName(ctx) {
+        return this.adminService.searchUserByName(ctx);
     }
     async onMessage(ctx) {
         return this.adminService.onMessage(ctx);
@@ -246,6 +252,20 @@ __decorate([
     __metadata("design:paramtypes", [telegraf_1.Context]),
     __metadata("design:returntype", Promise)
 ], AppUpdate.prototype, "clients", null);
+__decorate([
+    (0, nestjs_telegraf_1.Hears)('📱 Telefon raqam orqali'),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "searchUserByPhone", null);
+__decorate([
+    (0, nestjs_telegraf_1.Hears)('🔎 Ism orqali izlash'),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "searchByUserByName", null);
 __decorate([
     (0, nestjs_telegraf_1.On)('message'),
     __param(0, (0, nestjs_telegraf_1.Ctx)()),

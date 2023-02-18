@@ -31,4 +31,7 @@ export declare class AdminService {
     deleteFields(ctx: Context): Promise<void>;
     removeFields(ctx: Context): Promise<void>;
     updateFields(ctx: Context): Promise<void>;
+    seeUsers(ctx: Context): Promise<void>;
+    searchUserByPhone(ctx: Context): Promise<void>;
+    searchUserByName(ctx: Context): Promise<void>;
 }

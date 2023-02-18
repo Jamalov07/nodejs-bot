@@ -360,6 +360,31 @@ let AdminService = class AdminService {
             await ctx.reply('💁‍♂️ Marhamat, yangi nomni yozing');
         }
     }
+    async seeUsers(ctx) {
+        await ctx.reply('Userlarni korish uchun, ism yoki telefon raqam bilan izlashingiz mumkin', Object.assign({ parse_mode: 'HTML' }, telegraf_1.Markup.keyboard(["📱 Telefon raqam orqali", "🔎 Ism orqali izlash"])
+            .oneTime()
+            .resize()));
+    }
+    async searchUserByPhone(ctx) {
+        await this.adminRepository.update({
+            last_state: 'userbyphone',
+        }, {
+            where: {
+                admin_id: `${ctx.from.id}`
+            }
+        });
+        await ctx.replyWithHTML('💁‍♂️ <b>Marhamat, userning telefon raqamini kiriting</b>');
+    }
+    async searchUserByName(ctx) {
+        await this.adminRepository.update({
+            last_state: 'userbyname',
+        }, {
+            where: {
+                admin_id: `${ctx.from.id}`
+            }
+        });
+        await ctx.replyWithHTML('💁‍♂️ <b>Marhamat, userning ismini kiriting</b>');
+    }
 };
 AdminService = __decorate([
     (0, common_1.Injectable)(),
