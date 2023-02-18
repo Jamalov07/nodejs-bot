@@ -1,4 +1,4 @@
-import { Column, DataType, Model, Table } from 'sequelize-typescript';
+import { Column, DataType, Model, Table } from "sequelize-typescript";
 
 interface UserAttr {
   user_id: string;
@@ -8,9 +8,9 @@ interface UserAttr {
   username: string;
   status: boolean;
   last_state: string;
-  message_id: string;
+  real_name: string;
 }
-@Table({ tableName: 'user', timestamps: false })
+@Table({ tableName: "user", timestamps: false })
 export class User extends Model<User, UserAttr> {
   @Column({
     type: DataType.STRING,
@@ -29,7 +29,10 @@ export class User extends Model<User, UserAttr> {
     type: DataType.STRING,
   })
   first_name: string;
-
+  @Column({
+    type: DataType.STRING,
+  })
+  real_name: string;
   @Column({
     type: DataType.STRING,
   })
@@ -43,10 +46,6 @@ export class User extends Model<User, UserAttr> {
     type: DataType.STRING,
   })
   last_state: string;
-  @Column({
-    type: DataType.STRING,
-  })
-  message_id: string;
   @Column({
     type: DataType.BOOLEAN,
     defaultValue: false,
