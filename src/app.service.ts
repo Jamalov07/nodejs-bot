@@ -556,4 +556,200 @@ export class AppService {
       await ctx.reply(clientsInfo);
     }
   }
+
+  async hearsRating(ctx: Context) {
+    const master = await this.masterRepository.findOne({
+      where: { master_id: `${ctx.from.id}` },
+    });
+    if (master) {
+      const rating = Math.round(master.rating);
+      let str = "";
+      for (let i = 0; i < rating; i++) {
+        str += `🌟`;
+      }
+      await ctx.reply(`Umumiy reyting: ${str ? str : "🌟"}`);
+    }
+  }
+
+  async hearsTime(ctx: Context) {
+    const master = await this.masterRepository.findOne({
+      where: { master_id: `${ctx.from.id}` },
+    });
+    if (master) {
+      let date = new Date();
+      let weeksCount = 7;
+      let inlineButtons = [];
+      let timeNow = date.toTimeString().slice(0, 5);
+      let dateNow = date
+        .toISOString()
+        .split("T")[0]
+        .split("-")
+        .slice(1)
+        .reverse()
+        .join(".");
+
+      // console.log(timeNow);
+      // console.log(dateNow);
+      if (timeNow < master.work_end_time) {
+        inlineButtons.push([
+          Markup.button.callback(
+            dateNow,
+            `search=date:${date.getFullYear()}-${dateNow
+              .split(".")
+              .reverse()
+              .join("-")}`
+          ),
+        ]);
+        weeksCount--;
+      }
+
+      for (let i = 0; i < weeksCount; i++) {
+        let nextDate = new Date(date.setDate(date.getDate() + 1))
+          .toISOString()
+          .split("T")[0]
+          .split("-")
+          .slice(1)
+          .reverse()
+          .join(".");
+        inlineButtons.push([
+          Markup.button.callback(
+            nextDate,
+            `search=date:${date.getFullYear()}-${nextDate
+              .split(".")
+              .reverse()
+              .join("-")}`
+          ),
+        ]);
+      }
+
+      await ctx.reply("Kunni tanlang", {
+        parse_mode: "HTML",
+        ...Markup.inlineKeyboard([...inlineButtons]),
+      });
+      // console.log(...inlineButtons);
+    }
+  }
+
+  async actionSearchForDay(ctx: Context) {
+    const master = await this.masterRepository.findOne({
+      where: { master_id: `${ctx.from.id}` },
+    });
+    if ("match" in ctx) {
+      if (master) {
+        // console.log(ctx);
+        const message = ctx.match["input"];
+        const dateMatch = message.split("=")[1].split(":")[1];
+        let dateNow = new Date().toISOString().split("T")[0];
+        let timeNow = new Date().toISOString().split("T")[1].slice(0, 5);
+        console.log(timeNow);
+        console.log(dateMatch);
+        console.log(dateNow);
+        let orders;
+        if (dateNow === dateMatch) {
+          orders = await this.orderRepository.findAll({
+            where: {
+              master_id: master.master_id,
+              date: dateMatch,
+              time: {
+                [Op.gt]: timeNow,
+              },
+            },
+          });
+        } else {
+          orders = await this.orderRepository.findAll({
+            where: {
+              master_id: master.master_id,
+              date: dateMatch,
+            },
+          });
+        }
+        let orderTimes = [];
+        for (let i = 0; i < orders.length; i++) {
+          orderTimes.push(orders[i].time);
+        }
+        console.log(orderTimes);
+        // console.log(orders);
+        let time = master.work_start_time;
+        // console.log(time, master.work_end_time);
+        let inlineKeyboards = [];
+        while (parseInt(time) < parseInt(master.work_end_time)) {
+          if (dateNow === dateMatch) {
+            if (parseInt(time) > parseInt(timeNow)) {
+              if (orderTimes.includes(time)) {
+                for (let i = 0; i < orders.length; i++) {
+                  if (orders[i].time === time) {
+                    inlineKeyboards.push(
+                      Markup.button.callback(
+                        `❌ ${time}`,
+                        `bookwithuser:id=${orders[i].user_id}-date=${dateMatch}-time=${time}`
+                      )
+                    );
+                  }
+                }
+              } else {
+                inlineKeyboards.push(
+                  Markup.button.callback(
+                    `${time}`,
+                    `booking:date=${dateMatch}-time=${time}`
+                  )
+                );
+              }
+            }
+          } else {
+            if (orderTimes.includes(time)) {
+              for (let i = 0; i < orders.length; i++) {
+                if (orders[i].time === time) {
+                  inlineKeyboards.push(
+                    Markup.button.callback(
+                      `❌ ${time}`,
+                      `bookwithuser:id=${orders[i].user_id}-date=${dateMatch}-time=${time}`
+                    )
+                  );
+                }
+              }
+            } else {
+              inlineKeyboards.push(
+                Markup.button.callback(
+                  `${time}`,
+                  `booking:date=${dateMatch}-time=${time}`
+                )
+              );
+            }
+          }
+          let minut = +time.split(":")[1];
+          let hour = +time.split(":")[0];
+          minut = minut + +master.time_per_work;
+          // console.log(minut);
+          if (minut >= 60) {
+            minut = minut - 60;
+            time = `${+hour + 1 < 10 ? `0${hour + 1}` : hour + 1}:${
+              minut ? minut : `00`
+            }`;
+          } else {
+            time = `${hour < 10 ? `0${hour}` : hour}:${minut ? minut : `00`}`;
+          }
+          console.log(time);
+        }
+        console.log(inlineKeyboards);
+        let buttons = [];
+        let mainKeyboard = [];
+        for (let i = 0; i < inlineKeyboards.length; i++) {
+          buttons.push(inlineKeyboards[i]);
+          if (buttons.length == 5) {
+            mainKeyboard.push(buttons);
+            buttons = [];
+          }
+        }
+        if (buttons.length) {
+          mainKeyboard.push(buttons);
+          buttons = [];
+        }
+        console.log(...mainKeyboard);
+        await ctx.reply("Siz tanlagan kunning umumiy vaqtlari ro'yhati", {
+          parse_mode: "HTML",
+          ...Markup.inlineKeyboard([...mainKeyboard]),
+        });
+      }
+    }
+  }
 }

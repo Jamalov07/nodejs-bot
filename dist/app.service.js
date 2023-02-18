@@ -468,6 +468,160 @@ let AppService = class AppService {
             await ctx.reply(clientsInfo);
         }
     }
+    async hearsRating(ctx) {
+        const master = await this.masterRepository.findOne({
+            where: { master_id: `${ctx.from.id}` },
+        });
+        if (master) {
+            const rating = Math.round(master.rating);
+            let str = "";
+            for (let i = 0; i < rating; i++) {
+                str += `🌟`;
+            }
+            await ctx.reply(`Umumiy reyting: ${str ? str : "🌟"}`);
+        }
+    }
+    async hearsTime(ctx) {
+        const master = await this.masterRepository.findOne({
+            where: { master_id: `${ctx.from.id}` },
+        });
+        if (master) {
+            let date = new Date();
+            let weeksCount = 7;
+            let inlineButtons = [];
+            let timeNow = date.toTimeString().slice(0, 5);
+            let dateNow = date
+                .toISOString()
+                .split("T")[0]
+                .split("-")
+                .slice(1)
+                .reverse()
+                .join(".");
+            if (timeNow < master.work_end_time) {
+                inlineButtons.push([
+                    telegraf_1.Markup.button.callback(dateNow, `search=date:${date.getFullYear()}-${dateNow
+                        .split(".")
+                        .reverse()
+                        .join("-")}`),
+                ]);
+                weeksCount--;
+            }
+            for (let i = 0; i < weeksCount; i++) {
+                let nextDate = new Date(date.setDate(date.getDate() + 1))
+                    .toISOString()
+                    .split("T")[0]
+                    .split("-")
+                    .slice(1)
+                    .reverse()
+                    .join(".");
+                inlineButtons.push([
+                    telegraf_1.Markup.button.callback(nextDate, `search=date:${date.getFullYear()}-${nextDate
+                        .split(".")
+                        .reverse()
+                        .join("-")}`),
+                ]);
+            }
+            await ctx.reply("Kunni tanlang", Object.assign({ parse_mode: "HTML" }, telegraf_1.Markup.inlineKeyboard([...inlineButtons])));
+        }
+    }
+    async actionSearchForDay(ctx) {
+        const master = await this.masterRepository.findOne({
+            where: { master_id: `${ctx.from.id}` },
+        });
+        if ("match" in ctx) {
+            if (master) {
+                const message = ctx.match["input"];
+                const dateMatch = message.split("=")[1].split(":")[1];
+                let dateNow = new Date().toISOString().split("T")[0];
+                let timeNow = new Date().toISOString().split("T")[1].slice(0, 5);
+                console.log(timeNow);
+                console.log(dateMatch);
+                console.log(dateNow);
+                let orders;
+                if (dateNow === dateMatch) {
+                    orders = await this.orderRepository.findAll({
+                        where: {
+                            master_id: master.master_id,
+                            date: dateMatch,
+                            time: {
+                                [sequelize_2.Op.gt]: timeNow,
+                            },
+                        },
+                    });
+                }
+                else {
+                    orders = await this.orderRepository.findAll({
+                        where: {
+                            master_id: master.master_id,
+                            date: dateMatch,
+                        },
+                    });
+                }
+                let orderTimes = [];
+                for (let i = 0; i < orders.length; i++) {
+                    orderTimes.push(orders[i].time);
+                }
+                console.log(orderTimes);
+                let time = master.work_start_time;
+                let inlineKeyboards = [];
+                while (parseInt(time) < parseInt(master.work_end_time)) {
+                    if (dateNow === dateMatch) {
+                        if (parseInt(time) > parseInt(timeNow)) {
+                            if (orderTimes.includes(time)) {
+                                for (let i = 0; i < orders.length; i++) {
+                                    if (orders[i].time === time) {
+                                        inlineKeyboards.push(telegraf_1.Markup.button.callback(`❌ ${time}`, `bookwithuser:id=${orders[i].user_id}-date=${dateMatch}-time=${time}`));
+                                    }
+                                }
+                            }
+                            else {
+                                inlineKeyboards.push(telegraf_1.Markup.button.callback(`${time}`, `booking:date=${dateMatch}-time=${time}`));
+                            }
+                        }
+                    }
+                    else {
+                        if (orderTimes.includes(time)) {
+                            for (let i = 0; i < orders.length; i++) {
+                                if (orders[i].time === time) {
+                                    inlineKeyboards.push(telegraf_1.Markup.button.callback(`❌ ${time}`, `bookwithuser:id=${orders[i].user_id}-date=${dateMatch}-time=${time}`));
+                                }
+                            }
+                        }
+                        else {
+                            inlineKeyboards.push(telegraf_1.Markup.button.callback(`${time}`, `booking:date=${dateMatch}-time=${time}`));
+                        }
+                    }
+                    let minut = +time.split(":")[1];
+                    let hour = +time.split(":")[0];
+                    minut = minut + +master.time_per_work;
+                    if (minut >= 60) {
+                        minut = minut - 60;
+                        time = `${+hour + 1 < 10 ? `0${hour + 1}` : hour + 1}:${minut ? minut : `00`}`;
+                    }
+                    else {
+                        time = `${hour < 10 ? `0${hour}` : hour}:${minut ? minut : `00`}`;
+                    }
+                    console.log(time);
+                }
+                console.log(inlineKeyboards);
+                let buttons = [];
+                let mainKeyboard = [];
+                for (let i = 0; i < inlineKeyboards.length; i++) {
+                    buttons.push(inlineKeyboards[i]);
+                    if (buttons.length == 5) {
+                        mainKeyboard.push(buttons);
+                        buttons = [];
+                    }
+                }
+                if (buttons.length) {
+                    mainKeyboard.push(buttons);
+                    buttons = [];
+                }
+                console.log(...mainKeyboard);
+                await ctx.reply("Siz tanlagan kunning umumiy vaqtlari ro'yhati", Object.assign({ parse_mode: "HTML" }, telegraf_1.Markup.inlineKeyboard([...mainKeyboard])));
+            }
+        }
+    }
 };
 AppService = __decorate([
     (0, common_1.Injectable)(),

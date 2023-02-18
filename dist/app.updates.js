@@ -68,6 +68,15 @@ let AppUpdate = class AppUpdate {
     async hearsClients(ctx) {
         await this.appService.hearsMijozlarInMaster(ctx);
     }
+    async hearsRating(ctx) {
+        await this.appService.hearsRating(ctx);
+    }
+    async hearsTime(ctx) {
+        return this.appService.hearsTime(ctx);
+    }
+    async onSearch(ctx) {
+        return this.appService.actionSearchForDay(ctx);
+    }
     async onMessage(ctx) {
         return this.appService.onMessage(ctx);
     }
@@ -184,6 +193,27 @@ __decorate([
     __metadata("design:paramtypes", [telegraf_1.Context]),
     __metadata("design:returntype", Promise)
 ], AppUpdate.prototype, "hearsClients", null);
+__decorate([
+    (0, nestjs_telegraf_1.Hears)("📊 Reyting"),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "hearsRating", null);
+__decorate([
+    (0, nestjs_telegraf_1.Hears)("🕔 Vaqt"),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "hearsTime", null);
+__decorate([
+    (0, nestjs_telegraf_1.Action)(/(^search=[\s\S])\w+/g),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "onSearch", null);
 __decorate([
     (0, nestjs_telegraf_1.On)("message"),
     __param(0, (0, nestjs_telegraf_1.Ctx)()),

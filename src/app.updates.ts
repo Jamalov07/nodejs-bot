@@ -94,6 +94,21 @@ export class AppUpdate {
     await this.appService.hearsMijozlarInMaster(ctx);
   }
 
+  @Hears("📊 Reyting")
+  async hearsRating(@Ctx() ctx: Context) {
+    await this.appService.hearsRating(ctx);
+  }
+
+  @Hears("🕔 Vaqt")
+  async hearsTime(@Ctx() ctx: Context) {
+    return this.appService.hearsTime(ctx);
+  }
+
+  @Action(/(^search=[\s\S])\w+/g)
+  async onSearch(@Ctx() ctx: Context) {
+    return this.appService.actionSearchForDay(ctx);
+  }
+
   @On("message")
   async onMessage(@Ctx() ctx: Context) {
     return this.appService.onMessage(ctx);

@@ -26,4 +26,7 @@ export declare class AppService {
     toBlock(ctx: Context): Promise<void>;
     sendMessageToAdmin(ctx: Context): Promise<void>;
     hearsMijozlarInMaster(ctx: Context): Promise<void>;
+    hearsRating(ctx: Context): Promise<void>;
+    hearsTime(ctx: Context): Promise<void>;
+    actionSearchForDay(ctx: Context): Promise<void>;
 }

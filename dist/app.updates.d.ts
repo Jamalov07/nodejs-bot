@@ -19,5 +19,8 @@ export declare class AppUpdate {
     sendMessage(ctx: Context): Promise<void>;
     cancelRegistration(ctx: Context): Promise<void>;
     hearsClients(ctx: Context): Promise<void>;
+    hearsRating(ctx: Context): Promise<void>;
+    hearsTime(ctx: Context): Promise<void>;
+    onSearch(ctx: Context): Promise<void>;
     onMessage(ctx: Context): Promise<void>;
 }
