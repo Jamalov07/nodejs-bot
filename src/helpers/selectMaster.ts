@@ -3,6 +3,9 @@ import { Context, Markup } from "telegraf";
 export async function select_master(ctx: Context, master) {
   const str = `👱‍♂️ ISMI – ${master.name || "❌❌❌"}
 📞 TELEFON RAQAMI – ${master.phone_number || "❌❌❌"}
+⭐️ REYTINGI – ${master.rating || "❌❌❌"}${"⭐️".repeat(
+    Math.round(master.rating)
+  )}
 🏢 USTAXONA NOMI – ${master.service_name || "❌❌❌"}
 🏞 MANZILI – ${master.address || "❌❌❌"}
 🎯 MO’LJAL – ${master.target_address || "❌❌❌"}`;
@@ -17,13 +20,13 @@ export async function select_master(ctx: Context, master) {
 
         {
           text: "⭐️ BAHOLASH",
-          callback_data: `Ranking-${master.master_id}`,
+          callback_data: `Ranking`,
         },
       ],
       [
         {
           text: "🕔 VAQT OLISH",
-          callback_data: `getTimeOrder-${master.master_id}`,
+          callback_data: `getTimeOrder`,
         },
 
         {

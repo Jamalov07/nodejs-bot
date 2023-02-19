@@ -74,6 +74,18 @@ export class AppUpdate {
   async selectMaster(@Ctx() ctx: Context) {
     return this.appService.selectMaster(ctx);
   }
+  @Action(/(masterLocation-[^c])/)
+  async masterLocation(@Ctx() ctx: Context) {
+    return this.appService.showLocation(ctx);
+  }
+  @Action(/(getRank-[^c])/)
+  async getRank(@Ctx() ctx: Context) {
+    return this.appService.getRank(ctx);
+  }
+  @Action("Ranking")
+  async Ranking(@Ctx() ctx: Context) {
+    return this.appService.toRankings(ctx);
+  }
   @Action("goBack")
   async goBackAction(@Ctx() ctx: Context) {
     return this.appService.orqaga(ctx);

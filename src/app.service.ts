@@ -37,6 +37,8 @@ import {
 } from "./helpers/searchMasterLocation";
 import { getDistance } from "./helpers/distance";
 import { select_master } from "./helpers/selectMaster";
+import { Ranking } from "./models/ranking.model";
+import { ranking_master } from "./helpers/toRanking";
 
 @Injectable()
 export class AppService {
@@ -45,6 +47,7 @@ export class AppService {
     @InjectModel(Service_type) private serviceRepository: typeof Service_type,
     @InjectModel(Master) private masterRepository: typeof Master,
     @InjectModel(Order) private orderRepository: typeof Order,
+    @InjectModel(Ranking) private rankingRepository: typeof Ranking,
     @InjectBot(MyBotName) private readonly bot: Telegraf<Context>
   ) {}
 
@@ -294,6 +297,18 @@ export class AppService {
         user.message_id = String(newCtx.message_id);
         await user.save();
       }
+    } else if (user.last_state == "ranking") {
+      const master = await this.masterRepository.findOne({
+        where: { master_id: user.selectMasterId },
+      });
+      if (!master) {
+        user.last_state = "main_mijoz";
+        await user.save();
+        return await mainMijoz(ctx);
+      }
+      user.last_state = "select_master";
+      await user.save();
+      await select_master(ctx, master);
     }
   }
 
@@ -475,6 +490,91 @@ export class AppService {
       const newCtx = await select_master(ctx, master);
       user.message_id = String(newCtx.message_id);
       await user.save();
+    }
+  }
+
+  async showLocation(ctx) {
+    let user = await this.userRepository.findOne({
+      where: { user_id: String(ctx.from.id) },
+    });
+
+    if (!user) {
+      return boshMenu(ctx);
+    }
+    if (user.last_state == "select_master") {
+      const lat = ctx.match["input"].split("-")[1].split(",")[0];
+      const lon = ctx.match["input"].split("-")[1].split(",")[1];
+      await ctx.replyWithLocation(+lat, +lon, +user.user_id);
+    }
+  }
+
+  async toRankings(ctx) {
+    let user = await this.userRepository.findOne({
+      where: { user_id: String(ctx.from.id) },
+    });
+
+    if (!user) {
+      return boshMenu(ctx);
+    }
+    if (user.last_state == "select_master") {
+      const ranking = await this.rankingRepository.findOne({
+        where: { user_id: user.user_id, master_id: user.selectMasterId },
+      });
+      user.last_state = "ranking";
+      await user.save();
+      await ranking_master(ctx, ranking?.rank);
+    }
+  }
+
+  async getRank(ctx) {
+    let user = await this.userRepository.findOne({
+      where: { user_id: String(ctx.from.id) },
+    });
+
+    if (!user) {
+      return boshMenu(ctx);
+    }
+    if (user.last_state == "ranking") {
+      const rank = +ctx.match["input"].split("-")[1];
+      let ranking = await this.rankingRepository.findOne({
+        where: { user_id: user.user_id, master_id: user.selectMasterId },
+      });
+      if (!ranking) {
+        ranking = await this.rankingRepository.create({
+          user_id: user.user_id,
+          master_id: user.selectMasterId,
+          rank,
+        });
+      } else {
+        await this.rankingRepository.update(
+          { rank },
+          {
+            where: {
+              user_id: user.user_id,
+              master_id: user.selectMasterId,
+            },
+          }
+        );
+      }
+      const ranks = await this.rankingRepository.findAll({
+        where: { master_id: user.selectMasterId },
+      });
+      const total_renk = ranks.reduce((a, b) => a + b.rank, 0) / ranks.length;
+      console.log(total_renk);
+      const master = await this.masterRepository.findOne({
+        where: { master_id: user.selectMasterId },
+      });
+      if (!master) {
+        user.last_state = "main_mijoz";
+        await user.save();
+        return await mainMijoz(ctx);
+      }
+      master.rating = total_renk;
+      await master.save();
+
+      user.last_state = "select_master";
+      await user.save();
+      await select_master(ctx, master);
     }
   }
 }
