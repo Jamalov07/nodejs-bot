@@ -325,6 +325,7 @@ export class AppService {
     }
 
     if (user.last_state === "select_service") {
+      user.searchType = "rating";
       user.last_state = "searchNameService";
       await user.save();
       await search_mijoz_ism(ctx);
@@ -340,6 +341,7 @@ export class AppService {
     }
 
     if (user.last_state === "select_service") {
+      user.searchType = "rating";
       user.last_state = "searchRatingService";
       await ctx.reply("Reyting bo'yicha:", {
         parse_mode: "HTML",
@@ -408,6 +410,8 @@ export class AppService {
     }
 
     if (user.last_state === "service") {
+      user.searchType = "location";
+
       user.last_state = "searchLocationService";
       await user.save();
       await search_mijoz_location(ctx);

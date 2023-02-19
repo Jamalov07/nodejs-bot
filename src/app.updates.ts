@@ -56,22 +56,18 @@ export class AppUpdate {
   }
   @Action(/^(service-\d+)/)
   async selectService(@Ctx() ctx: Context) {
-    console.log("salom");
     return this.appService.selectServices(ctx);
   }
   @Action(/(prevMastersName-[^c])/)
   async prevMastersName(@Ctx() ctx: Context) {
-    console.log("salom");
     return this.appService.onPaginationName(ctx);
   }
   @Action(/(prevMastersRating-[^c])/)
   async prevMastersRating(@Ctx() ctx: Context) {
-    console.log("salom");
     return this.appService.onPaginationRating(ctx);
   }
   @Action(/(prevMastersLocation-[^c])/)
   async prevMastersLocation(@Ctx() ctx: Context) {
-    console.log("salom");
     return this.appService.onPaginationLocation(ctx);
   }
   @On("location")

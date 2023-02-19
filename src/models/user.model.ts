@@ -15,6 +15,8 @@ interface UserAttr {
   paginationCount: number;
   service_id: number;
   searchName: string;
+  searchType: string;
+  selectMasterId: string;
 }
 @Table({ tableName: "user", timestamps: false })
 export class User extends Model<User, UserAttr> {
@@ -72,6 +74,14 @@ export class User extends Model<User, UserAttr> {
     type: DataType.STRING,
   })
   searchName: string;
+  @Column({
+    type: DataType.STRING,
+  })
+  searchType: string;
+  @Column({
+    type: DataType.STRING,
+  })
+  selectMasterId: string;
   @Column({
     type: DataType.STRING(2000),
   })

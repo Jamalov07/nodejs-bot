@@ -68,7 +68,6 @@ export async function searchMasterName(ctx, user, masterRepo) {
 }
 export async function searchMasterNameFirst(ctx, user: User, masterRepo) {
   const count = user.paginationCount;
-  console.log(user);
   const results = await masterRepo.findAll({
     offset: 10 * count,
     limit: 10,
@@ -80,7 +79,6 @@ export async function searchMasterNameFirst(ctx, user: User, masterRepo) {
     },
   });
   const masters = [];
-  console.log(results.length);
   if (!results.length) {
     return await ctx.reply("Hechkim topilmadi, Qaytadan urinib ko'ring");
   }
