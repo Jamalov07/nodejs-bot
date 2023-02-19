@@ -1,20 +1,17 @@
 import { Op } from "sequelize";
 import { Markup } from "telegraf";
+import { User } from "../models/user.model";
 
-export async function searchMasterName(
-  ctx,
-  user,
-  masterRepo,
-  count,
-  searchName
-) {
+export async function searchMasterName(ctx, user, masterRepo) {
+  const count = user.paginationCount;
+
   const results = await masterRepo.findAll({
     offset: 10 * count,
     limit: 10,
     where: {
       [Op.and]: [
-        { service_id: +user.last_state.split("-")[1] },
-        { name: { [Op.iLike]: `%${searchName}%` } },
+        { service_id: user.service_id },
+        { name: { [Op.iLike]: `%${user.searchName}%` } },
       ],
     },
   });
@@ -35,25 +32,25 @@ export async function searchMasterName(
     masters.push([
       {
         text: "⏪ Orqaga",
-        callback_data: `prevMastersName-${count - 1}-${searchName}`,
+        callback_data: `prevMastersName-${count - 1}`,
       },
       {
         text: "keyingisi ⏩",
-        callback_data: `prevMastersName-${count + 1}-${searchName}`,
+        callback_data: `prevMastersName-${count + 1}`,
       },
     ]);
   } else if (results.length == 10) {
     masters.push([
       {
         text: "keyingisi ⏩",
-        callback_data: `prevMastersName-${count + 1}-${searchName}`,
+        callback_data: `prevMastersName-${count + 1}`,
       },
     ]);
   } else if (results.length < 10) {
     masters.push([
       {
         text: "⏪ Orqaga",
-        callback_data: `prevMastersName-${count - 1}-${searchName}`,
+        callback_data: `prevMastersName-${count - 1}`,
       },
     ]);
   }
@@ -69,20 +66,16 @@ export async function searchMasterName(
     }
   );
 }
-export async function searchMasterNameFirst(
-  ctx,
-  user,
-  masterRepo,
-  count,
-  searchName
-) {
+export async function searchMasterNameFirst(ctx, user: User, masterRepo) {
+  const count = user.paginationCount;
+  console.log(user);
   const results = await masterRepo.findAll({
     offset: 10 * count,
     limit: 10,
     where: {
       [Op.and]: [
-        { service_id: +user.last_state.split("-")[1] },
-        { name: { [Op.iLike]: `%${searchName}%` } },
+        { service_id: user.service_id },
+        { name: { [Op.iLike]: `%${user.searchName}%` } },
       ],
     },
   });
@@ -108,25 +101,25 @@ export async function searchMasterNameFirst(
     masters.push([
       {
         text: "⏪ Orqaga",
-        callback_data: `prevMastersName-${count - 1}-${searchName}`,
+        callback_data: `prevMastersName-${count - 1}`,
       },
       {
         text: "keyingisi ⏩",
-        callback_data: `prevMastersName-${count + 1}-${searchName}`,
+        callback_data: `prevMastersName-${count + 1}`,
       },
     ]);
   } else if (results.length == 10) {
     masters.push([
       {
         text: "keyingisi ⏩",
-        callback_data: `prevMastersName-${count + 1}-${searchName}`,
+        callback_data: `prevMastersName-${count + 1}`,
       },
     ]);
   } else if (results.length < 10 && count != 0) {
     masters.push([
       {
         text: "⏪ Orqaga",
-        callback_data: `prevMastersName-${count - 1}-${searchName}`,
+        callback_data: `prevMastersName-${count - 1}`,
       },
     ]);
   }

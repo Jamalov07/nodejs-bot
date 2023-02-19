@@ -1,12 +1,14 @@
 import { Op } from "sequelize";
 import { Markup } from "telegraf";
 
-export async function searchMasterRating(ctx, user, masterRepo, count) {
+export async function searchMasterRating(ctx, user, masterRepo) {
+  const count = user.paginationCount;
+
   const results = await masterRepo.findAll({
     offset: 10 * count,
     limit: 10,
     where: {
-      service_id: +user.last_state.split("-")[1],
+      service_id: user.service_id,
     },
     order: [["rating", "DESC"]],
   });
@@ -61,12 +63,14 @@ export async function searchMasterRating(ctx, user, masterRepo, count) {
     }
   );
 }
-export async function searchMasterRatingFirst(ctx, user, masterRepo, count) {
+export async function searchMasterRatingFirst(ctx, user, masterRepo) {
+  const count = user.paginationCount;
+
   const results = await masterRepo.findAll({
     offset: 10 * count,
     limit: 10,
     where: {
-      service_id: +user.last_state.split("-")[1],
+      service_id: user.service_id,
     },
     order: [["rating", "DESC"]],
   });

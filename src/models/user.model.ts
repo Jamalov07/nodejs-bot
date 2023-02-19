@@ -12,6 +12,9 @@ interface UserAttr {
   message_id: string;
   location: string;
   distance: string;
+  paginationCount: number;
+  service_id: number;
+  searchName: string;
 }
 @Table({ tableName: "user", timestamps: false })
 export class User extends Model<User, UserAttr> {
@@ -58,7 +61,19 @@ export class User extends Model<User, UserAttr> {
   })
   location: string;
   @Column({
+    type: DataType.INTEGER,
+  })
+  paginationCount: number;
+  @Column({
+    type: DataType.INTEGER,
+  })
+  service_id: number;
+  @Column({
     type: DataType.STRING,
+  })
+  searchName: string;
+  @Column({
+    type: DataType.STRING(2000),
   })
   distance: string;
   @Column({

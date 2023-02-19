@@ -50,6 +50,10 @@ export class AppUpdate {
   async searchRatingService(@Ctx() ctx: Context) {
     return this.appService.serachRatingMijoz(ctx);
   }
+  @Hears("Lokatsiya 📍")
+  async onLocation(@Ctx() ctx: Context) {
+    return this.appService.onLocation(ctx);
+  }
   @Action(/^(service-\d+)/)
   async selectService(@Ctx() ctx: Context) {
     console.log("salom");
@@ -64,6 +68,15 @@ export class AppUpdate {
   async prevMastersRating(@Ctx() ctx: Context) {
     console.log("salom");
     return this.appService.onPaginationRating(ctx);
+  }
+  @Action(/(prevMastersLocation-[^c])/)
+  async prevMastersLocation(@Ctx() ctx: Context) {
+    console.log("salom");
+    return this.appService.onPaginationLocation(ctx);
+  }
+  @On("location")
+  async getLocation(@Ctx() ctx: Context) {
+    return this.appService.getLocation(ctx);
   }
   @On("contact")
   async onContact(@Ctx() ctx: Context) {

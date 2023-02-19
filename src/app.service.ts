@@ -30,7 +30,11 @@ import {
   searchMasterRating,
   searchMasterRatingFirst,
 } from "./helpers/searchRatingMaster";
-import { search_mijoz_location } from "./helpers/searchMasterLocation";
+import {
+  search_mijoz_location,
+  show_mijoz_location,
+  show_mijoz_locationsFirst,
+} from "./helpers/searchMasterLocation";
 import { getDistance } from "./helpers/distance";
 
 @Injectable()
@@ -106,16 +110,12 @@ export class AppService {
             ]).resize(),
           }
         );
-      } else if (user.last_state.split("-")[0] === "searchNameService") {
+      } else if (user.last_state === "searchNameService") {
         const searchName = ctx.message.text;
-        console.log("salom");
-        await searchMasterNameFirst(
-          ctx,
-          user,
-          this.masterRepository,
-          0,
-          searchName
-        );
+        user.paginationCount = 0;
+        user.searchName = searchName;
+        await user.save();
+        await searchMasterNameFirst(ctx, user, this.masterRepository);
       }
     }
   }
@@ -129,13 +129,9 @@ export class AppService {
       return boshMenu(ctx);
     }
 
-    await searchMasterName(
-      ctx,
-      user,
-      this.masterRepository,
-      +ctx.match["input"].split("-")[1],
-      ctx.match["input"].split("-")[2]
-    );
+    user.paginationCount = +ctx.match["input"].split("-")[1];
+    await user.save();
+    await searchMasterName(ctx, user, this.masterRepository);
   }
   async onPaginationRating(ctx) {
     let user = await this.userRepository.findOne({
@@ -145,13 +141,21 @@ export class AppService {
     if (!user) {
       return boshMenu(ctx);
     }
+    user.paginationCount = +ctx.match["input"].split("-")[1];
+    await user.save();
+    await searchMasterRating(ctx, user, this.masterRepository);
+  }
+  async onPaginationLocation(ctx) {
+    let user = await this.userRepository.findOne({
+      where: { user_id: String(ctx.from.id) },
+    });
 
-    await searchMasterRating(
-      ctx,
-      user,
-      this.masterRepository,
-      +ctx.match["input"].split("-")[1]
-    );
+    if (!user) {
+      return boshMenu(ctx);
+    }
+    user.paginationCount = +ctx.match["input"].split("-")[1];
+    await user.save();
+    await show_mijoz_location(ctx, user);
   }
 
   async onContact(ctx) {
@@ -250,16 +254,16 @@ export class AppService {
       user.last_state = "change_mijoz";
       await user.save();
       await change_mijoz_data(ctx);
-    } else if (user.last_state.split("-")[0] == "service") {
+    } else if (user.last_state == "select_service") {
       user.last_state = "main_mijoz";
       await user.save();
       await mainMijoz(ctx);
     } else if (
-      user.last_state.split("-")[0] == "searchNameService" ||
-      user.last_state.split("-")[0] == "searchRatingService" ||
-      user.last_state.split("-")[0] == "searchLocationService"
+      user.last_state == "searchNameService" ||
+      user.last_state == "searchRatingService" ||
+      user.last_state == "searchLocationService"
     ) {
-      user.last_state = "service-" + user.last_state.split("-")[1];
+      user.last_state = "select_service";
       await user.save();
       await select_service_data(ctx);
     }
@@ -296,7 +300,8 @@ export class AppService {
       return boshMenu(ctx);
     }
 
-    user.last_state = ctx.match["input"];
+    user.last_state = "select_service";
+    user.service_id = +ctx.match["input"].split("-")[1];
     user.save();
 
     await ctx.reply(`Quyidagi kriteriyalar bo'yicha tanlang: `, {
@@ -319,8 +324,8 @@ export class AppService {
       return boshMenu(ctx);
     }
 
-    if (user.last_state.split("-")[0] === "service") {
-      user.last_state = "searchNameService-" + user.last_state.split("-")[1];
+    if (user.last_state === "select_service") {
+      user.last_state = "searchNameService";
       await user.save();
       await search_mijoz_ism(ctx);
     }
@@ -334,15 +339,17 @@ export class AppService {
       return boshMenu(ctx);
     }
 
-    if (user.last_state.split("-")[0] === "service") {
-      user.last_state = "searchRatingService-" + user.last_state.split("-")[1];
+    if (user.last_state === "select_service") {
+      user.last_state = "searchRatingService";
       await ctx.reply("Reyting bo'yicha:", {
         parse_mode: "HTML",
         ...Markup.keyboard([["orqaga ↩️"]]).resize(),
       });
-      await searchMasterRatingFirst(ctx, user, this.masterRepository, 0);
+
+      user.paginationCount = 0;
       user.message_id = String(ctx.message.message_id + 2);
       await user.save();
+      await searchMasterRatingFirst(ctx, user, this.masterRepository);
     }
   }
   async getLocation(ctx) {
@@ -353,29 +360,42 @@ export class AppService {
     if (!user) {
       return boshMenu(ctx);
     }
-    const lon = ctx.message.location.longitude;
-    const lat = ctx.message.location.latitude;
-    user.location = `${lat},${lon}`;
-    const results = await this.masterRepository.findAll({
-      where: {
-        service_id: +user.last_state.split("-")[1],
-      },
-    });
-    const distances = [];
-    results.forEach(async (result) => {
-      let to_lat = result.location.split(",")[0];
-      let to_lon = result.location.split(",")[1];
-      const distance = await getDistance(lat, lon, to_lat, to_lon);
-      distances.push({
-        id: result.master_id,
-        distance: distance,
-        name: result.name,
+    if (user.last_state === "searchLocationService") {
+      const lon = ctx.message.location.longitude;
+      const lat = ctx.message.location.latitude;
+      user.location = `${lat},${lon}`;
+      const results = await this.masterRepository.findAll({
+        where: {
+          service_id: +user.service_id,
+        },
       });
-    });
+      const distances = [];
+      for (const result of results) {
+        let to_lat = result.location?.split(",")[0];
+        let to_lon = result.location?.split(",")[1];
+        if (to_lat && to_lon) {
+          const distance = await getDistance(lat, lon, to_lat, to_lon);
+          distances.push({
+            id: result.master_id,
+            distance: distance,
+            name: result.name,
+          });
+        }
+      }
 
-    distances.sort((a, b) => a.distance - b.distance);
-    user.distance = JSON.stringify(distances);
-    await user.save();
+      distances.sort((a, b) => a.distance - b.distance);
+      user.distance = JSON.stringify(distances);
+      user.message_id = String(ctx.message.message_id + 2);
+      user.changed("distance", true);
+      user.paginationCount = 0;
+      await user.save();
+      await ctx.reply("Lokatsiya bo'yicha:", {
+        parse_mode: "HTML",
+        ...Markup.keyboard([["orqaga ↩️"]]).resize(),
+      });
+
+      await show_mijoz_locationsFirst(ctx, user);
+    }
   }
 
   async onLocation(ctx) {
@@ -387,8 +407,8 @@ export class AppService {
       return boshMenu(ctx);
     }
 
-    if (user.last_state.split("-")[0] === "service") {
-      user.last_state = "searchNameLocation-" + user.last_state.split("-")[1];
+    if (user.last_state === "service") {
+      user.last_state = "searchLocationService";
       await user.save();
       await search_mijoz_location(ctx);
     }

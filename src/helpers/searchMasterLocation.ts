@@ -3,49 +3,104 @@ import { Context, Markup } from "telegraf";
 export async function search_mijoz_location(ctx: Context) {
   await ctx.reply("'Locatsiyani yuborish 📍' tugmasini bosing", {
     parse_mode: "HTML",
-    ...Markup.keyboard([["Locatsiyani yuborish 📍"], ["orqaga ↩️"]]).resize(),
+    ...Markup.keyboard([
+      [Markup.button.locationRequest("Locatsiyani yuborish 📍")],
+      ["orqaga ↩️"],
+    ]).resize(),
   });
 }
 
-export async function show_mijoz_locations(ctx, user, count) {
-  const masters = [];
+export async function show_mijoz_location(ctx, user) {
   const distances = JSON.parse(user.distance);
+  const count = user.paginationCount;
 
-  const len =
-    distances.length - 10 * (count + 1) > 10 * (count + 1)
-      ? 10 * (count + 1)
-      : distances.length;
-  for (let i = 10 * count; i < len; i++) {
+  const results = distances.slice(10 * count, 10 * (count + 1));
+  const masters = [];
+
+  for (const result of results) {
     masters.push([
       {
-        text: `${distances[i].name}-${distances[i].distance} metr`,
-        callback_data: `master-${distances[i].id}`,
+        text: `${result.name}-${result.distance} km`,
+        callback_data: `master-${result.id}`,
       },
     ]);
   }
-  if (count != 0 && distances.length - 10 * (count + 1) > 10 * (count + 1)) {
+  if (count != 0 && results.length == 10) {
     masters.push([
       {
         text: "⏪ Orqaga",
-        callback_data: `prevMastersRating-${count - 1}`,
+        callback_data: `prevMastersLocation-${count - 1}`,
       },
       {
         text: "keyingisi ⏩",
-        callback_data: `prevMastersRating-${count + 1}`,
+        callback_data: `prevMastersLocation-${count + 1}`,
       },
     ]);
-  } else if (distances.length == 10) {
+  } else if (results.length == 10) {
     masters.push([
       {
         text: "keyingisi ⏩",
-        callback_data: `prevMastersRating-${count + 1}`,
+        callback_data: `prevMastersLocation-${count + 1}`,
       },
     ]);
-  } else if (distances.length < 10 && count != 0) {
+  } else if (results.length < 10 && count != 0) {
     masters.push([
       {
         text: "⏪ Orqaga",
-        callback_data: `prevMastersRating-${count - 1}`,
+        callback_data: `prevMastersLocation-${count - 1}`,
+      },
+    ]);
+  }
+
+  await ctx.telegram.editMessageText(
+    +user.user_id,
+    +user.message_id,
+    null,
+    "Natijalar: ",
+    {
+      parse_mode: "HTML",
+      ...Markup.inlineKeyboard([...masters]),
+    }
+  );
+}
+export async function show_mijoz_locationsFirst(ctx, user) {
+  const count = user.paginationCount;
+
+  const masters = [];
+  const distances = JSON.parse(user.distance);
+  const results = distances.slice(10 * count, 10);
+
+  for (const result of results) {
+    masters.push([
+      {
+        text: `${result.name}-${result.distance} km`,
+        callback_data: `master-${result.id}`,
+      },
+    ]);
+  }
+  if (count != 0 && results.length == 10) {
+    masters.push([
+      {
+        text: "⏪ Orqaga",
+        callback_data: `prevMastersLocation-${count - 1}`,
+      },
+      {
+        text: "keyingisi ⏩",
+        callback_data: `prevMastersLocation-${count + 1}`,
+      },
+    ]);
+  } else if (results.length == 10) {
+    masters.push([
+      {
+        text: "keyingisi ⏩",
+        callback_data: `prevMastersLocation-${count + 1}`,
+      },
+    ]);
+  } else if (results.length < 10 && count != 0) {
+    masters.push([
+      {
+        text: "⏪ Orqaga",
+        callback_data: `prevMastersLocation-${count - 1}`,
       },
     ]);
   }
