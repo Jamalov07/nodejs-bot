@@ -28,5 +28,16 @@ export declare class AppUpdate {
     fullDayNotBusy(ctx: Context): Promise<void>;
     fullDayBusy(ctx: Context): Promise<void>;
     toBackDates(ctx: Context): Promise<void>;
+    hearsUpdateInfo(ctx: Context): Promise<void>;
+    changeName(ctx: Context): Promise<void>;
+    changePhone(ctx: Context): Promise<void>;
+    changeservice_name(ctx: Context): Promise<void>;
+    changeaddress(ctx: Context): Promise<void>;
+    changetarget(ctx: Context): Promise<void>;
+    changelocation(ctx: Context): Promise<void>;
+    changestart_time(ctx: Context): Promise<void>;
+    changeend_time(ctx: Context): Promise<void>;
+    changetime_per_work(ctx: Context): Promise<void>;
+    tomainmenu(ctx: Context): Promise<void>;
     onMessage(ctx: Context): Promise<void>;
 }

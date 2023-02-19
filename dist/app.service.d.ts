@@ -35,5 +35,8 @@ export declare class AppService {
     fullDayNotBusy(ctx: Context): Promise<void>;
     busyFullDayMaster(ctx: Context): Promise<void>;
     toBack(ctx: Context): Promise<void>;
+    updateMasterInfos(ctx: Context): Promise<void>;
+    actionChange(ctx: Context, state: string): Promise<void>;
+    tomainmenu(ctx: Context): Promise<void>;
     helper(ctx: Context, dateMatch: string, master: Master): Promise<void>;
 }

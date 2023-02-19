@@ -241,6 +241,87 @@ let AppService = class AppService {
                         .oneTime()
                         .resize()));
                 }
+                else if (master.last_state === "change_name") {
+                    await master.update({ name: ctx.message.text, last_state: "finish" });
+                    await ctx.reply(`Ismingiz ${ctx.message.text} ga o'zgartirildi`);
+                }
+                else if (master.last_state === "change_phone") {
+                    if (!isNaN(+ctx.message.text) && ctx.message.text.length == 12) {
+                        await master.update({
+                            phone_number: ctx.message.text,
+                            last_state: "finish",
+                        });
+                        await ctx.reply(`Raqamingiz ${ctx.message.text} ga o'zgartirildi`);
+                    }
+                }
+                else if (master.last_state === "change_service_name") {
+                    await master.update({
+                        service_name: ctx.message.text,
+                        last_state: "finish",
+                    });
+                    await ctx.reply(`Ustaxona nomi ${ctx.message.text} ga o'zgartirildi`);
+                }
+                else if (master.last_state === "change_address") {
+                    await master.update({
+                        address: ctx.message.text,
+                        last_state: "finish",
+                    });
+                    await ctx.reply(`Manzil ${ctx.message.text} ga o'zgartirildi`);
+                }
+                else if (master.last_state === "change_target") {
+                    await master.update({
+                        target_address: ctx.message.text,
+                        last_state: "finish",
+                    });
+                    await ctx.reply(`Mo'ljal ${ctx.message.text} ga o'zgartirildi`);
+                }
+                else if (master.last_state === "change_start_time") {
+                    let time = ctx.message.text.split(":");
+                    if (+time.join("") <= 2400 &&
+                        ctx.message.text.length == 5 &&
+                        +time[0] <= 24 &&
+                        +time[1] <= 59) {
+                        await master.update({
+                            work_start_time: ctx.message.text,
+                            last_state: "finish",
+                        });
+                        await ctx.reply(`Ochilish vaqti ${ctx.message.text} ga o'zgartirildi`);
+                    }
+                    else {
+                        await ctx.reply("Vaqtni ko'rsatilgan namunadek kiriting");
+                    }
+                }
+                else if (master.last_state === "change_end_time") {
+                    let time = ctx.message.text.split(":");
+                    if (+time.join("") <= 2400 &&
+                        ctx.message.text.length == 5 &&
+                        +time[0] <= 24 &&
+                        +time[1] <= 59) {
+                        let date = ctx.message.text === "00:00" ? "24:00" : ctx.message.text;
+                        await master.update({
+                            work_end_time: date,
+                            last_state: "finish",
+                        });
+                        await ctx.reply(`Yopilish vaqti ${ctx.message.text} ga o'zgartirildi`);
+                    }
+                    else {
+                        await ctx.reply("Vaqtni ko'rsatilgan namunadek kiriting");
+                    }
+                }
+                else if (master.last_state === "change_time_per_work") {
+                    if (!isNaN(+ctx.message.text) &&
+                        +ctx.message.text < 60 &&
+                        +ctx.message.text != 0) {
+                        await master.update({
+                            time_per_work: ctx.message.text,
+                            last_state: "finish",
+                        });
+                        await ctx.reply(`Bir mijoz uchun sarflanadigan vaqt ${ctx.message.text} minut ga o'zgartirildi`);
+                    }
+                    else {
+                        await ctx.reply("Ko'rsatilgan namunadek kiriting");
+                    }
+                }
             }
         }
     }
@@ -888,7 +969,78 @@ let AppService = class AppService {
                         .join("-")}`),
                 ]);
             }
-            await ctx.telegram.editMessageText(master.master_id, master.message_id, null, "Kunni tanlang", Object.assign({ parse_mode: "HTML" }, telegraf_1.Markup.inlineKeyboard([...inlineButtons])));
+            await ctx.telegram.editMessageText(master.master_id, +master.message_id, null, "Kunni tanlang", Object.assign({ parse_mode: "HTML" }, telegraf_1.Markup.inlineKeyboard([...inlineButtons])));
+        }
+    }
+    async updateMasterInfos(ctx) {
+        const master = await this.masterRepository.findOne({
+            where: { master_id: `${ctx.from.id}` },
+        });
+        if (master) {
+            await ctx.reply("✍️ O'zgartirish uchun kerakli bo'limni tanlang", Object.assign({ parse_mode: "HTML" }, telegraf_1.Markup.inlineKeyboard([
+                [telegraf_1.Markup.button.callback("✍️ Ism", "change_name")],
+                [telegraf_1.Markup.button.callback("📲 Raqam", "change_phone")],
+                [telegraf_1.Markup.button.callback("✍️ Ustaxona", "change_service_name")],
+                [telegraf_1.Markup.button.callback("✍️ Manzil", "change_address")],
+                [telegraf_1.Markup.button.callback("✍️ Mo'ljal", "change_target")],
+                [telegraf_1.Markup.button.callback("📍 Location", "change_location")],
+                [
+                    telegraf_1.Markup.button.callback("🕔 Ish boshlash vaqti", "change_start_time"),
+                ],
+                [telegraf_1.Markup.button.callback("🕐 Ish yakunlash vaqti", "change_end_time")],
+                [
+                    telegraf_1.Markup.button.callback("⏳ O'rtacha sarflanadigan vaqt", "change_time_per_work"),
+                ],
+                [telegraf_1.Markup.button.callback("Ortga", "tomainmenu")],
+            ])));
+        }
+    }
+    async actionChange(ctx, state) {
+        const master = await this.masterRepository.findOne({
+            where: { master_id: `${ctx.from.id}` },
+        });
+        if (master) {
+            await master.update({ last_state: state });
+            if (state == "change_name") {
+                await ctx.reply("Yangi ism kiriting");
+            }
+            else if (state == "change_service_name") {
+                await ctx.reply("yangi ustaxona nomini kiriting");
+            }
+            else if (state == "change_phone") {
+                await ctx.reply("yangi raqam yuboring Namuna ( 998949174127 )");
+            }
+            else if (state == "change_address") {
+                await ctx.reply("Yangi manzil yuboring");
+            }
+            else if (state == "change_target") {
+                await ctx.reply("Yangi mo'ljal kiriting");
+            }
+            else if (state == "change_location") {
+                await ctx.reply("Yangi location yuboring");
+            }
+            else if (state == "change_start_time") {
+                await ctx.reply("Yangi boshlash vaqtini kiriting  Namune ( 09:00 )");
+            }
+            else if (state == "change_end_time") {
+                await ctx.reply("Yangi yopilish vaqtini kiriting Namuna ( 18:00 )");
+            }
+            else if (state == "change_time_per_work") {
+                await ctx.reply("Bir kishi uchun sarflanadigan vaqtni kiriting Namuna ( 0 < ? < 60 )");
+            }
+        }
+    }
+    async tomainmenu(ctx) {
+        const master = await this.masterRepository.findOne({
+            where: { master_id: `${ctx.from.id}` },
+        });
+        if (master) {
+            await ctx.reply("O'zingizga kerakli bo'lgan bo'limni tanlang", Object.assign({ parse_mode: "HTML" }, telegraf_1.Markup.keyboard([
+                ["👥 Mijozlar", "🕔 Vaqt", "📊 Reyting"],
+                ["🔄 Ma'lumotlarni o'zgartirish"],
+            ])
+                .oneTime()
+                .resize()));
         }
     }
     async helper(ctx, dateMatch, master) {
@@ -991,7 +1143,9 @@ let AppService = class AppService {
             telegraf_1.Markup.button.callback("Ortga", `toback:dates`),
         ];
         mainKeyboard.push(fullDay);
-        await ctx.telegram.editMessageText(master.master_id, +master.message_id, null, `Siz tanlagan kunning umumiy vaqtlari ro'yhati\n${timeNow} holatiga ko'ra`, Object.assign({ parse_mode: "HTML" }, telegraf_1.Markup.inlineKeyboard([...mainKeyboard])));
+        if (orderTimes.length) {
+            await ctx.telegram.editMessageText(master.master_id, +master.message_id, null, `Siz tanlagan kunning umumiy vaqtlari ro'yhati\n${timeNow}:${new Date().getSeconds()} holatiga ko'ra`, Object.assign({ parse_mode: "HTML" }, telegraf_1.Markup.inlineKeyboard([...mainKeyboard])));
+        }
     }
 };
 AppService = __decorate([

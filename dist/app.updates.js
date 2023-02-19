@@ -95,6 +95,39 @@ let AppUpdate = class AppUpdate {
     async toBackDates(ctx) {
         return this.appService.toBack(ctx);
     }
+    async hearsUpdateInfo(ctx) {
+        return this.appService.updateMasterInfos(ctx);
+    }
+    async changeName(ctx) {
+        await this.appService.actionChange(ctx, "change_name");
+    }
+    async changePhone(ctx) {
+        await this.appService.actionChange(ctx, "change_phone");
+    }
+    async changeservice_name(ctx) {
+        await this.appService.actionChange(ctx, "change_service_name");
+    }
+    async changeaddress(ctx) {
+        await this.appService.actionChange(ctx, "change_address");
+    }
+    async changetarget(ctx) {
+        await this.appService.actionChange(ctx, "change_target");
+    }
+    async changelocation(ctx) {
+        await this.appService.actionChange(ctx, "change_location");
+    }
+    async changestart_time(ctx) {
+        await this.appService.actionChange(ctx, "change_start_time");
+    }
+    async changeend_time(ctx) {
+        await this.appService.actionChange(ctx, "change_end_time");
+    }
+    async changetime_per_work(ctx) {
+        await this.appService.actionChange(ctx, "change_time_per_work");
+    }
+    async tomainmenu(ctx) {
+        await this.appService.tomainmenu(ctx);
+    }
     async onMessage(ctx) {
         return this.appService.onMessage(ctx);
     }
@@ -274,6 +307,83 @@ __decorate([
     __metadata("design:paramtypes", [telegraf_1.Context]),
     __metadata("design:returntype", Promise)
 ], AppUpdate.prototype, "toBackDates", null);
+__decorate([
+    (0, nestjs_telegraf_1.Hears)("🔄 Ma'lumotlarni o'zgartirish"),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "hearsUpdateInfo", null);
+__decorate([
+    (0, nestjs_telegraf_1.Action)("change_name"),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "changeName", null);
+__decorate([
+    (0, nestjs_telegraf_1.Action)("change_phone"),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "changePhone", null);
+__decorate([
+    (0, nestjs_telegraf_1.Action)("change_service_name"),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "changeservice_name", null);
+__decorate([
+    (0, nestjs_telegraf_1.Action)("change_address"),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "changeaddress", null);
+__decorate([
+    (0, nestjs_telegraf_1.Action)("change_target"),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "changetarget", null);
+__decorate([
+    (0, nestjs_telegraf_1.Action)("change_location"),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "changelocation", null);
+__decorate([
+    (0, nestjs_telegraf_1.Action)("change_start_time"),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "changestart_time", null);
+__decorate([
+    (0, nestjs_telegraf_1.Action)("change_end_time"),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "changeend_time", null);
+__decorate([
+    (0, nestjs_telegraf_1.Action)("change_time_per_work"),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "changetime_per_work", null);
+__decorate([
+    (0, nestjs_telegraf_1.Action)("tomainmenu"),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "tomainmenu", null);
 __decorate([
     (0, nestjs_telegraf_1.On)("message"),
     __param(0, (0, nestjs_telegraf_1.Ctx)()),

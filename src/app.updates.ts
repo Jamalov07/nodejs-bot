@@ -139,6 +139,58 @@ export class AppUpdate {
     return this.appService.toBack(ctx);
   }
 
+  @Hears("🔄 Ma'lumotlarni o'zgartirish")
+  async hearsUpdateInfo(@Ctx() ctx: Context) {
+    return this.appService.updateMasterInfos(ctx);
+  }
+
+  @Action("change_name")
+  async changeName(@Ctx() ctx: Context) {
+    await this.appService.actionChange(ctx, "change_name");
+  }
+
+  @Action("change_phone")
+  async changePhone(@Ctx() ctx: Context) {
+    await this.appService.actionChange(ctx, "change_phone");
+  }
+
+  @Action("change_service_name")
+  async changeservice_name(@Ctx() ctx: Context) {
+    await this.appService.actionChange(ctx, "change_service_name");
+  }
+
+  @Action("change_address")
+  async changeaddress(@Ctx() ctx: Context) {
+    await this.appService.actionChange(ctx, "change_address");
+  }
+
+  @Action("change_target")
+  async changetarget(@Ctx() ctx: Context) {
+    await this.appService.actionChange(ctx, "change_target");
+  }
+
+  @Action("change_location")
+  async changelocation(@Ctx() ctx: Context) {
+    await this.appService.actionChange(ctx, "change_location");
+  }
+  @Action("change_start_time")
+  async changestart_time(@Ctx() ctx: Context) {
+    await this.appService.actionChange(ctx, "change_start_time");
+  }
+  @Action("change_end_time")
+  async changeend_time(@Ctx() ctx: Context) {
+    await this.appService.actionChange(ctx, "change_end_time");
+  }
+  @Action("change_time_per_work")
+  async changetime_per_work(@Ctx() ctx: Context) {
+    await this.appService.actionChange(ctx, "change_time_per_work");
+  }
+
+  @Action("tomainmenu")
+  async tomainmenu(@Ctx() ctx: Context) {
+    await this.appService.tomainmenu(ctx);
+  }
+
   @On("message")
   async onMessage(@Ctx() ctx: Context) {
     return this.appService.onMessage(ctx);
