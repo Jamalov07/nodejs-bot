@@ -29,11 +29,8 @@ export class Master extends Model<Master, MasterAttr> {
   name: string;
   @Column({ type: DataType.STRING })
   phone_number: string;
-  @ForeignKey(() => Service_type)
   @Column({ type: DataType.INTEGER })
   service_id: number;
-  @BelongsTo(() => Service_type)
-  serviceType:Service_type;
   @Column({ type: DataType.STRING })
   address: string;
   @Column({ type: DataType.STRING })

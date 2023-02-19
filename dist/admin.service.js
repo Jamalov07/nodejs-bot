@@ -26,6 +26,7 @@ const admin_model_1 = require("./models/admin.model");
 const messageToAdmin_1 = require("./helpers/messageToAdmin");
 const messageMaster_menu_1 = require("./helpers/messageMaster.menu");
 const sequelize_2 = require("sequelize");
+const getServices_1 = require("./helpers/getServices");
 let AdminService = class AdminService {
     constructor(userRepository, serviceRepository, masterRepository, orderRepository, adminRepository, bot) {
         this.userRepository = userRepository;
@@ -50,8 +51,16 @@ let AdminService = class AdminService {
         }
     }
     async showProperties(ctx) {
+        const services = await this.serviceRepository.findAll();
+        let serviceNames = [];
+        for (let i = 0; i < services.length; i++) {
+            serviceNames.push([
+                telegraf_1.Markup.button.callback(services[i].name, `thisservice=${services[i].id}`),
+            ]);
+        }
+        await ctx.reply("Mavjud bo'lgan sohalar", Object.assign({}, telegraf_1.Markup.inlineKeyboard([...serviceNames])));
         await ctx.reply("Xizmatlarda qilishingiz mumkin bo'lgan imkoniyatlar", Object.assign({ parse_mode: "HTML" }, telegraf_1.Markup.keyboard([
-            ["⏬ Xizmat qo'shish", "🛂 Tahrirlash", "🗑 O'chirib tashlash"]
+            ["⏬ Xizmat qo'shish", "🛂 Tahrirlash", "🗑 O'chirib tashlash", "👀 Barcha xizmatlarni ko'rish"]
         ])
             .oneTime()
             .resize()));
@@ -68,9 +77,11 @@ let AdminService = class AdminService {
                 last_state: 'addnewService'
             });
         }
+        const services = await this.serviceRepository.findAll();
         admin.last_state = 'addnewService';
+        await (0, getServices_1.getterServices)(services, ctx);
         await admin.save();
-        await ctx.replyWithHTML('💁‍♂️ Marhamat yangi servisning nomini kiriting !');
+        await ctx.replyWithHTML('💁‍♂️ <b>Marhamat yangi servisning nomini kiriting !</b>');
     }
     async onMessage(ctx) {
         const admin = await this.adminRepository.findOne({
@@ -80,19 +91,34 @@ let AdminService = class AdminService {
         });
         if (admin.last_state == 'addnewService') {
             if ('text' in ctx.message) {
-                await this.serviceRepository.create({
-                    name: String(ctx.message.text)
+                const check = await this.serviceRepository.findOne({
+                    where: {
+                        name: `${ctx.message.text}`
+                    }
                 });
-                admin.last_state = "finish";
-                await admin.save();
-                await ctx.reply('Muvaffaqiyatli qoshildi !', Object.assign({ parse_mode: 'HTML' }, telegraf_1.Markup.keyboard([
-                    ["♻️ Yana qo'shish", "🏠 Bosh menyu"]
-                ])
-                    .oneTime()
-                    .resize()));
-            }
-            else {
-                await (0, messageToAdmin_1.messageToAdmin)('Bosh menyu', ctx);
+                const services = await this.serviceRepository.findAll();
+                if (check) {
+                    await (0, getServices_1.getterServices)(services, ctx);
+                    await ctx.reply('<b>Bunday nomli xizmat mavjud !</b>', Object.assign({ parse_mode: 'HTML' }, telegraf_1.Markup.keyboard([
+                        ["♻️ Yana qo'shish", "🏠 Bosh menyu", "🧰 Xizmatlar bo'limiga qaytish"]
+                    ])
+                        .oneTime()
+                        .resize()));
+                }
+                else {
+                    await this.serviceRepository.create({
+                        name: String(ctx.message.text)
+                    });
+                    const nServices = await this.serviceRepository.findAll();
+                    admin.last_state = "finish";
+                    await admin.save();
+                    await (0, getServices_1.getterServices)(nServices, ctx);
+                    await ctx.reply('<b>Muvaffaqiyatli qoshildi !</b>', Object.assign({ parse_mode: 'HTML' }, telegraf_1.Markup.keyboard([
+                        ["♻️ Yana qo'shish", "🏠 Bosh menyu", "🙍‍♂️ Mijozlar bo'limiga qaytish"]
+                    ])
+                        .oneTime()
+                        .resize()));
+                }
             }
         }
         else if (admin.last_state === 'searchbynamemaster') {
@@ -124,7 +150,7 @@ let AdminService = class AdminService {
                     admin.search_master_state = 0;
                     admin.last_state = 'finish';
                     await admin.save();
-                    await ctx.replyWithHTML(`<b>Ushbu yo'nalishda bunday nomli user yo'q</b>`);
+                    await ctx.replyWithHTML(`<b>Ushbu yo'nalishda bunday nomli usta yo'q</b>`);
                     await this.complectMasters(ctx);
                 }
             }
@@ -152,8 +178,9 @@ let AdminService = class AdminService {
                     admin.search_master_state = 0;
                     admin.last_state = 'finish';
                     await admin.save();
-                    await ctx.replyWithHTML(`<b>Ushbu yo'nalishda bunday raqamli user yo'q</b>`);
-                    await (0, messageMaster_menu_1.messageMasterMenu)(data.master_id, 'Yonalishlardan birini tanlashingiz mumkin', ctx);
+                    await ctx.reply(`<b>Ushbu yo'nalishda bunday raqamli usta yo'q</b>`, Object.assign({ parse_mode: 'HTML' }, telegraf_1.Markup.keyboard(["🏠 Bosh menyu", "👨‍⚕️ Usta yo'nalishlariga qaytish", "📱 Yana telefon raqami orqali izlash"])
+                        .oneTime()
+                        .resize()));
                 }
             }
         }
@@ -175,6 +202,8 @@ let AdminService = class AdminService {
                         id: admin.target_service_type_id
                     }
                 });
+                const service = await this.serviceRepository.findAll();
+                await (0, getServices_1.getterServices)(service, ctx);
                 admin.last_state = 'finish';
                 await admin.save();
                 await ctx.reply('Muvvafiqatli ozgartirildi !\n Davom etish uchun quyidagi buttonlardan birini tanlang', Object.assign({ parse_mode: 'HTML' }, telegraf_1.Markup.keyboard(["🔄 Yana boshqa service typeni o'zgartirish", "🏠 Bosh menyu"])
@@ -262,6 +291,8 @@ let AdminService = class AdminService {
                 admin_id: String(ctx.from.id)
             }
         });
+        const services = await this.serviceRepository.findAll();
+        await (0, getServices_1.getterServices)(services, ctx);
         await ctx.reply('💁‍♂️ Marhamat yana bir bor yangi servis xizmati nomini kiriting !');
     }
     async hearsServiceFields(ctx) {
@@ -408,6 +439,8 @@ let AdminService = class AdminService {
                     id: +id
                 }
             });
+            const services = await this.serviceRepository.findAll();
+            await (0, getServices_1.getterServices)(services, ctx);
             await ctx.reply(`Service turi o'chirildi`, Object.assign({ parse_mode: 'HTML' }, telegraf_1.Markup.keyboard(["🗑 Yana boshqa service turini o'chirib tashlash", "🏠 Bosh menyu"])
                 .oneTime()
                 .resize()));
@@ -416,7 +449,6 @@ let AdminService = class AdminService {
     async updateFields(ctx) {
         if ("match" in ctx) {
             const id = ctx.match[0].slice(12);
-            console.log(id);
             await this.adminRepository.update({
                 last_state: 'updatefield',
                 target_service_type_id: id
@@ -472,6 +504,17 @@ let AdminService = class AdminService {
             }
         });
         await ctx.reply("Marhamat, xabarni kiriting!");
+    }
+    async seeAllServiceTypes(ctx) {
+        const services = await this.serviceRepository.findAll();
+        let serviceNames = [];
+        for (let i = 0; i < services.length; i++) {
+            serviceNames.push([
+                telegraf_1.Markup.button.callback(services[i].name, `thisservice=${services[i].id}`),
+            ]);
+        }
+        serviceNames.push([telegraf_1.Markup.button.callback("🏠 Bosh menyu", "mainmenu")]);
+        await ctx.reply("Mavjud xizmatlar", Object.assign({}, telegraf_1.Markup.inlineKeyboard([...serviceNames])));
     }
 };
 AdminService = __decorate([

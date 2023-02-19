@@ -7,7 +7,9 @@ export declare class AppUpdate {
     constructor(appService: AppService, adminService: AdminService);
     enterToAdmin(ctx: Context): Promise<void>;
     properties(ctx: Context): Promise<void>;
+    reTurn(ctx: Context): Promise<void>;
     addServiceType(ctx: Context): Promise<void>;
+    seeAllServiceTypes(ctx: Context): Promise<void>;
     seeMasters(ctx: Context): Promise<void>;
     sendMessageUser(ctx: Context): Promise<void>;
     hearsService(ctx: Context): Promise<void>;
@@ -25,13 +27,16 @@ export declare class AppUpdate {
     deleteField(ctx: Context): Promise<void>;
     updateField(ctx: Context): Promise<void>;
     reAddNewItem(ctx: Context): Promise<void>;
+    reSeeMasters(ctx: Context): Promise<void>;
     searchByName(ctx: Context): Promise<void>;
+    reAgainByNumber(ctx: Context): Promise<void>;
     changeFields(ctx: Context): Promise<void>;
     reChangeServiceType(ctx: Context): Promise<void>;
     reDeleteServiceType(ctx: Context): Promise<void>;
     deleteFields(ctx: Context): Promise<void>;
     searchByNumber(ctx: Context): Promise<void>;
     clients(ctx: Context): Promise<void>;
+    returnToUserMenu(ctx: Context): Promise<void>;
     reSeeClients(ctx: Context): Promise<void>;
     searchUserByPhone(ctx: Context): Promise<void>;
     searchByUserByName(ctx: Context): Promise<void>;

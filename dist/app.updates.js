@@ -28,8 +28,14 @@ let AppUpdate = class AppUpdate {
     async properties(ctx) {
         return this.adminService.showProperties(ctx);
     }
+    async reTurn(ctx) {
+        return this.adminService.showProperties(ctx);
+    }
     async addServiceType(ctx) {
         return this.adminService.addServiceType(ctx);
+    }
+    async seeAllServiceTypes(ctx) {
+        return this.adminService.seeAllServiceTypes(ctx);
     }
     async seeMasters(ctx) {
         return this.adminService.complectMasters(ctx);
@@ -82,8 +88,14 @@ let AppUpdate = class AppUpdate {
     async reAddNewItem(ctx) {
         return this.adminService.reAddNewItem(ctx);
     }
+    async reSeeMasters(ctx) {
+        return this.adminService.complectMasters(ctx);
+    }
     async searchByName(ctx) {
         return this.adminService.searchByName(ctx);
+    }
+    async reAgainByNumber(ctx) {
+        return this.adminService.searchByNumber(ctx);
     }
     async changeFields(ctx) {
         return this.adminService.changeFields(ctx);
@@ -101,6 +113,9 @@ let AppUpdate = class AppUpdate {
         return this.adminService.searchByNumber(ctx);
     }
     async clients(ctx) {
+        return this.adminService.seeUsers(ctx);
+    }
+    async returnToUserMenu(ctx) {
         return this.adminService.seeUsers(ctx);
     }
     async reSeeClients(ctx) {
@@ -131,12 +146,26 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AppUpdate.prototype, "properties", null);
 __decorate([
+    (0, nestjs_telegraf_1.Hears)("🧰 Xizmatlar bo'limiga qaytish"),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "reTurn", null);
+__decorate([
     (0, nestjs_telegraf_1.Hears)("⏬ Xizmat qo'shish"),
     __param(0, (0, nestjs_telegraf_1.Ctx)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [telegraf_1.Context]),
     __metadata("design:returntype", Promise)
 ], AppUpdate.prototype, "addServiceType", null);
+__decorate([
+    (0, nestjs_telegraf_1.Hears)("👀 Barcha xizmatlarni ko'rish"),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "seeAllServiceTypes", null);
 __decorate([
     (0, nestjs_telegraf_1.Hears)('🧖‍♂️ Ustalar'),
     __param(0, (0, nestjs_telegraf_1.Ctx)()),
@@ -257,12 +286,26 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AppUpdate.prototype, "reAddNewItem", null);
 __decorate([
+    (0, nestjs_telegraf_1.Hears)("👨‍⚕️ Usta yo'nalishlariga qaytish"),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "reSeeMasters", null);
+__decorate([
     (0, nestjs_telegraf_1.Hears)("🔍 Ism bo'yicha izlash"),
     __param(0, (0, nestjs_telegraf_1.Ctx)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [telegraf_1.Context]),
     __metadata("design:returntype", Promise)
 ], AppUpdate.prototype, "searchByName", null);
+__decorate([
+    (0, nestjs_telegraf_1.Hears)("📱 Yana telefon raqami orqali izlash"),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "reAgainByNumber", null);
 __decorate([
     (0, nestjs_telegraf_1.Hears)('🛂 Tahrirlash'),
     __param(0, (0, nestjs_telegraf_1.Ctx)()),
@@ -305,6 +348,13 @@ __decorate([
     __metadata("design:paramtypes", [telegraf_1.Context]),
     __metadata("design:returntype", Promise)
 ], AppUpdate.prototype, "clients", null);
+__decorate([
+    (0, nestjs_telegraf_1.Hears)("🙍‍♂️ Mijozlar bo'limiga qaytish"),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "returnToUserMenu", null);
 __decorate([
     (0, nestjs_telegraf_1.Hears)("🙍‍♂️ Mijozlarni izlashda davom etish"),
     __param(0, (0, nestjs_telegraf_1.Ctx)()),

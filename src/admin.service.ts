@@ -12,7 +12,7 @@ import { messageToAdmin } from "./helpers/messageToAdmin";
 import { messageMasterMenu } from "./helpers/messageMaster.menu";
 import { messageUser } from "./helpers/messageUser";
 import { Op } from "sequelize";
-
+import { getterServices } from "./helpers/getServices";
 @Injectable()
 export class AdminService {
   constructor(
@@ -40,12 +40,25 @@ export class AdminService {
   }
 
   async showProperties(ctx:Context) {
+    const services = await this.serviceRepository.findAll();
+    let serviceNames = [];
+    for (let i = 0; i < services.length; i++) {
+      serviceNames.push([
+        Markup.button.callback(
+          services[i].name,
+          `thisservice=${services[i].id}`
+        ),
+      ]);
+    }
+    await ctx.reply("Mavjud bo'lgan sohalar", {
+      ...Markup.inlineKeyboard([...serviceNames]),
+    });
     await ctx.reply(
       "Xizmatlarda qilishingiz mumkin bo'lgan imkoniyatlar",
       {
         parse_mode:"HTML",
         ...Markup.keyboard([
-          ["⏬ Xizmat qo'shish","🛂 Tahrirlash","🗑 O'chirib tashlash"]
+          ["⏬ Xizmat qo'shish","🛂 Tahrirlash","🗑 O'chirib tashlash","👀 Barcha xizmatlarni ko'rish"]
         ])
           .oneTime()
           .resize()
@@ -65,9 +78,11 @@ export class AdminService {
         last_state: 'addnewService'
       })
     }
+    const services = await this.serviceRepository.findAll()
     admin.last_state = 'addnewService'
+    await getterServices(services,ctx);
     await admin.save()
-    await ctx.replyWithHTML('💁‍♂️ Marhamat yangi servisning nomini kiriting !')
+    await ctx.replyWithHTML('💁‍♂️ <b>Marhamat yangi servisning nomini kiriting !</b>')
   }
 
   async onMessage(ctx:Context) {
@@ -78,23 +93,43 @@ export class AdminService {
     })
     if(admin.last_state == 'addnewService') {
       if('text' in ctx.message) {
-        await this.serviceRepository.create({
-          name:String(ctx.message.text)
+        const check = await this.serviceRepository.findOne({
+          where:{
+            name:`${ctx.message.text}`
+          }
         })
-        admin.last_state = "finish";
-        await admin.save()
-        await ctx.reply('Muvaffaqiyatli qoshildi !',{
-          parse_mode:'HTML',
-          ...Markup.keyboard([
-            ["♻️ Yana qo'shish","🏠 Bosh menyu"]
-
-          ])
-            .oneTime()
-            .resize()
-        })
-      } else {
-        await messageToAdmin('Bosh menyu',ctx);
-      }
+        const services = await this.serviceRepository.findAll()
+        if(check){
+          await getterServices(services,ctx);
+          await ctx.reply('<b>Bunday nomli xizmat mavjud !</b>',{
+            parse_mode:'HTML',
+            ...Markup.keyboard([
+              ["♻️ Yana qo'shish","🏠 Bosh menyu","🧰 Xizmatlar bo'limiga qaytish"]
+  
+            ])
+              .oneTime()
+              .resize()
+          })
+        } else {
+          await this.serviceRepository.create({
+            name:String(ctx.message.text)
+          })
+          const nServices = await this.serviceRepository.findAll()
+          admin.last_state = "finish";
+          await admin.save()
+          await getterServices(nServices,ctx);
+          await ctx.reply('<b>Muvaffaqiyatli qoshildi !</b>',{
+            parse_mode:'HTML',
+            ...Markup.keyboard([
+              ["♻️ Yana qo'shish","🏠 Bosh menyu","🙍‍♂️ Mijozlar bo'limiga qaytish"]
+  
+            ])
+              .oneTime()
+              .resize()
+          })
+        } 
+        }
+        
     } else if(admin.last_state === 'searchbynamemaster'){
       if('text' in ctx.message) {
         const data = await this.masterRepository.findOne({
@@ -129,7 +164,7 @@ export class AdminService {
           admin.search_master_state = 0
           admin.last_state = 'finish'
           await admin.save()
-          await ctx.replyWithHTML(`<b>Ushbu yo'nalishda bunday nomli user yo'q</b>`)
+          await ctx.replyWithHTML(`<b>Ushbu yo'nalishda bunday nomli usta yo'q</b>`)
           await this.complectMasters(ctx);
         }
       }
@@ -160,8 +195,12 @@ export class AdminService {
           admin.search_master_state = 0
           admin.last_state = 'finish'
           await admin.save()
-          await ctx.replyWithHTML(`<b>Ushbu yo'nalishda bunday raqamli user yo'q</b>`)
-          await messageMasterMenu(data.master_id,'Yonalishlardan birini tanlashingiz mumkin',ctx);
+          await ctx.reply(`<b>Ushbu yo'nalishda bunday raqamli usta yo'q</b>`,{
+            parse_mode:'HTML',
+            ...Markup.keyboard(["🏠 Bosh menyu","👨‍⚕️ Usta yo'nalishlariga qaytish","📱 Yana telefon raqami orqali izlash"])
+            .oneTime()
+            .resize()
+          })
         }
       }
     } else if(admin.last_state == 'sendMessage') {
@@ -181,7 +220,9 @@ export class AdminService {
             id: admin.target_service_type_id
           }
         })
-        admin.last_state = 'finish'
+        const service = await this.serviceRepository.findAll()
+        await getterServices(service,ctx);
+        admin.last_state = 'finish';
         await admin.save()
         await ctx.reply('Muvvafiqatli ozgartirildi !\n Davom etish uchun quyidagi buttonlardan birini tanlang',{
           parse_mode:'HTML',
@@ -279,6 +320,8 @@ export class AdminService {
         admin_id:String(ctx.from.id)
       }
     })
+    const services = await this.serviceRepository.findAll()
+    await getterServices(services,ctx);
     await ctx.reply('💁‍♂️ Marhamat yana bir bor yangi servis xizmati nomini kiriting !')
   }
 
@@ -462,6 +505,8 @@ export class AdminService {
           id:+id
         }
       })
+      const services = await this.serviceRepository.findAll()
+      await getterServices(services,ctx);
       await ctx.reply(`Service turi o'chirildi`,{
         parse_mode:'HTML',
         ...Markup.keyboard(["🗑 Yana boshqa service turini o'chirib tashlash","🏠 Bosh menyu"])
@@ -474,7 +519,6 @@ export class AdminService {
   async updateFields(ctx:Context) {
     if("match" in ctx) {
       const id = ctx.match[0].slice(12)
-      console.log(id);
       await this.adminRepository.update({
         last_state:'updatefield',
         target_service_type_id:id
@@ -538,6 +582,23 @@ export class AdminService {
       }
     })
     await ctx.reply("Marhamat, xabarni kiriting!")
+  }
+
+  async seeAllServiceTypes(ctx:Context) {
+    const services = await this.serviceRepository.findAll();
+    let serviceNames = [];
+    for (let i = 0; i < services.length; i++) {
+      serviceNames.push([
+        Markup.button.callback(
+          services[i].name,
+          `thisservice=${services[i].id}`
+        ),
+      ]);
+    }
+    serviceNames.push([Markup.button.callback("🏠 Bosh menyu","mainmenu")])
+    await ctx.reply("Mavjud xizmatlar", {
+      ...Markup.inlineKeyboard([...serviceNames]),
+    });
   }
 }
 

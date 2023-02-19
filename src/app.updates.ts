@@ -17,11 +17,20 @@ export class AppUpdate {
   async properties(@Ctx() ctx:Context) {
     return this.adminService.showProperties(ctx);
   }
+
+  @Hears("🧰 Xizmatlar bo'limiga qaytish")
+  async reTurn(@Ctx() ctx:Context) {
+    return this.adminService.showProperties(ctx);
+  }
   @Hears("⏬ Xizmat qo'shish")
   async addServiceType(@Ctx() ctx:Context) {
     return this.adminService.addServiceType(ctx)
   }
 
+  @Hears("👀 Barcha xizmatlarni ko'rish")
+  async seeAllServiceTypes(@Ctx() ctx:Context) {
+    return this.adminService.seeAllServiceTypes(ctx);
+  }
   @Hears('🧖‍♂️ Ustalar')
   async seeMasters(@Ctx() ctx:Context){
     return this.adminService.complectMasters(ctx);
@@ -97,9 +106,17 @@ export class AppUpdate {
     return this.adminService.reAddNewItem(ctx);
   }
 
+  @Hears("👨‍⚕️ Usta yo'nalishlariga qaytish")
+  async reSeeMasters(@Ctx() ctx:Context) {
+    return this.adminService.complectMasters(ctx);
+  }
   @Hears("🔍 Ism bo'yicha izlash")
   async searchByName(@Ctx() ctx:Context) {
     return this.adminService.searchByName(ctx);
+  }
+  @Hears("📱 Yana telefon raqami orqali izlash")
+  async reAgainByNumber(@Ctx() ctx:Context) {
+    return this.adminService.searchByNumber(ctx);
   }
   @Hears('🛂 Tahrirlash')
   async changeFields(@Ctx() ctx:Context) {
@@ -126,6 +143,10 @@ export class AppUpdate {
     return this.adminService.seeUsers(ctx);
   }
 
+  @Hears("🙍‍♂️ Mijozlar bo'limiga qaytish")
+  async returnToUserMenu(@Ctx() ctx:Context) {
+    return this.adminService.seeUsers(ctx);
+  }
   @Hears("🙍‍♂️ Mijozlarni izlashda davom etish")
   async reSeeClients(@Ctx() ctx:Context) {
     return this.adminService.seeUsers(ctx);
