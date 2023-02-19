@@ -46,6 +46,7 @@ import {
   tima_paginationsFirst,
 } from "./helpers/timePagination";
 import { tanlangan_hizmatlar } from "./helpers/tanlanganHizmatlar";
+import { sendSMSMaster } from "./helpers/sendMasterSms";
 
 @Injectable()
 export class AppService {
@@ -679,6 +680,71 @@ export class AppService {
       });
     } else {
       ctx.reply("Hali hech qaysi hizmatga ro'yhatdan o'tmagansiz");
+    }
+  }
+
+  async sendSmsMaster(ctx) {
+    let user = await this.userRepository.findOne({
+      where: { user_id: String(ctx.from.id) },
+    });
+
+    if (!user) {
+      return boshMenu(ctx);
+    }
+    if (user.last_state == "getTimes") {
+      const master = await this.masterRepository.findOne({
+        where: { master_id: user.selectMasterId },
+      });
+      if (!master) {
+        user.last_state = "main_mijoz";
+        user.paginationCount = 0;
+        await user.save();
+        return await mainMijoz(ctx);
+      }
+      const order = await this.orderRepository.create({
+        user_id: user.user_id,
+        master_id: user.selectMasterId,
+        date: user.select_day,
+        time: ctx.match["input"].split("-")[1],
+        service_id: master.service_id,
+      });
+
+      await sendSMSMaster(ctx, user, order);
+    }
+  }
+
+  async confirmMessage(ctx) {
+    let user = await this.userRepository.findOne({
+      where: { user_id: String(ctx.from.id) },
+    });
+
+    if (!user) {
+      return boshMenu(ctx);
+    }
+    const order = await this.orderRepository.findOne({
+      where: { id: +ctx.match["input"].split("-")[1] },
+    });
+    if (order) {
+      if (ctx.match["input"].split("-")[0] == "xa") {
+        ctx.telegram.sendMessage(
+          +order.user_id,
+          `${order.date}.${order.time}-vaqtiga yuborgan so'rovingiz qabul qilindi ✅`
+        );
+        ctx.telegram.sendMessage(
+          +order.master_id,
+          `${order.date}.${order.time}-vaqtiga mijozni qabul qildingiz qabul qilindi ✅`
+        );
+      } else {
+        ctx.telegram.sendMessage(
+          +order.user_id,
+          `${order.date}.${order.time}-vaqtiga yuborgan so'rovingiz qabul qilinmadi ❌`
+        );
+        ctx.telegram.sendMessage(
+          +order.master_id,
+          `${order.date}.${order.time}-vaqtiga mijozni qabul qilmadingiz ❌`
+        );
+        await this.orderRepository.destroy({ where: { id: order.id } });
+      }
     }
   }
 }

@@ -7,7 +7,6 @@ export async function get_times(ctx: Context, user, order, master) {
   let time = master.work_start_time;
   let times = [];
   while (true) {
-    console.log(user.user_id, master.master_id, user.select_day, time);
     console.log(
       await order.findOne({
         where: {

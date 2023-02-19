@@ -12,7 +12,7 @@ export async function tima_pagination(ctx, user) {
     sanoq++;
     summ.push({
       text: `${result.time}${result.empty ? "" : "❌"}`,
-      callback_data: `timeSelect-${result.id}`,
+      callback_data: `${result.empty ? `timeSelect-${result.time}` : "not"}`,
     });
     if (sanoq == 4) {
       masters.push(summ);
@@ -71,7 +71,7 @@ export async function tima_paginationsFirst(ctx, user) {
     sanoq++;
     summ.push({
       text: `${result.time}${result.empty ? "" : "❌"}`,
-      callback_data: `timeSelect-${result.id}`,
+      callback_data: `timeSelect-${result.time}`,
     });
     if (sanoq == 4) {
       masters.push(summ);

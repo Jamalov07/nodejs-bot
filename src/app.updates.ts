@@ -94,6 +94,18 @@ export class AppUpdate {
   async getTimes(@Ctx() ctx: Context) {
     return this.appService.getTimes(ctx);
   }
+  @Action(/(timeSelect-[^c])/)
+  async timeSelect(@Ctx() ctx: Context) {
+    return this.appService.sendSmsMaster(ctx);
+  }
+  @Action(/(xa-[^c])/)
+  async confirmYes(@Ctx() ctx: Context) {
+    return this.appService.confirmMessage(ctx);
+  }
+  @Action(/(yo'q-[^c])/)
+  async confirmNo(@Ctx() ctx: Context) {
+    return this.appService.confirmMessage(ctx);
+  }
   @Action("Ranking")
   async Ranking(@Ctx() ctx: Context) {
     return this.appService.toRankings(ctx);
