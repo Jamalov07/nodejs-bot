@@ -75,6 +75,10 @@ export class AppUpdate {
     return this.adminService.toMainMenu(ctx);
   }
 
+  @Action('returntosearch')
+  async ReturnToSearchUser(@Ctx() ctx:Context) {
+    return this.adminService.seeUsers(ctx);
+  }
   @Action(/^(delmaster=\d+)/)
   async deleteMaster(@Ctx() ctx:Context) {
     return this.adminService.deleteMaster(ctx);
@@ -100,7 +104,10 @@ export class AppUpdate {
   async updateField(@Ctx() ctx:Context) {
     return this.adminService.updateFields(ctx);
   }
-
+  @Action(/^(banuser=\d+)/)
+  async banUser(@Ctx() ctx:Context) {
+    return this.adminService
+  }
   @Hears("♻️ Yana qo'shish")
   async reAddNewItem(@Ctx() ctx:Context) {
     return this.adminService.reAddNewItem(ctx);
@@ -149,6 +156,11 @@ export class AppUpdate {
   }
   @Hears("🙍‍♂️ Mijozlarni izlashda davom etish")
   async reSeeClients(@Ctx() ctx:Context) {
+    return this.adminService.seeUsers(ctx);
+  }
+
+  @Hears("🙍‍♂️ Mijozlarni bo'limiga qaytish")
+  async retur(@Ctx() ctx:Context) {
     return this.adminService.seeUsers(ctx);
   }
   @Hears('📱 Telefon raqam orqali')

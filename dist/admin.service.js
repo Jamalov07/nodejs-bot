@@ -272,10 +272,17 @@ let AdminService = class AdminService {
                     }
                 });
                 if (oneUser) {
-                    await ctx.reply(`<b>Ma'lumotlar</b>:\n<b>Userning ismi</b>:${oneUser.real_name}\n<b>Userning telefon raqami</b>:${oneUser.phone_number}\n`);
+                    await ctx.reply(`<b>Ma'lumotlar</b>:\n<b>Userning ismi</b>:${oneUser.real_name}\n<b>Userning telefon raqami</b>:${oneUser.phone_number}\n`, Object.assign({ parse_mode: 'HTML' }, telegraf_1.Markup.inlineKeyboard([
+                        [telegraf_1.Markup.button.callback("❌ Mijozni ban qilish", `deluser=${oneUser.user_id}`)],
+                        [telegraf_1.Markup.button.callback("📊 User haqida statistika chiqarish", `statuser=${oneUser.user_id}`)],
+                        [telegraf_1.Markup.button.callback("✍️ Mijozga sms yuborish", `msguser=${oneUser.user_id}`)],
+                        [telegraf_1.Markup.button.callback("🏠 User izlashga qaytish", 'returntosearch')]
+                    ])));
                 }
                 else {
-                    await ctx.reply('Bunday raqamli user topilmadi', Object.assign({ parse_mode: "HTML" }, telegraf_1.Markup.keyboard(["🏠 Bosh menyu", "🙍‍♂️ Mijozlarni izlashda davom etish"])));
+                    await ctx.reply('Bunday raqamli user topilmadi', Object.assign({ parse_mode: "HTML" }, telegraf_1.Markup.keyboard(["🏠 Bosh menyu", "🙍‍♂️ Mijozlarni izlashda davom etish"])
+                        .oneTime()
+                        .resize()));
                 }
             }
         }
@@ -461,7 +468,7 @@ let AdminService = class AdminService {
         }
     }
     async seeUsers(ctx) {
-        await ctx.reply('Userlarni korish uchun, ism yoki telefon raqam bilan izlashingiz mumkin', Object.assign({ parse_mode: 'HTML' }, telegraf_1.Markup.keyboard(["📱 Telefon raqam orqali", "🔎 Ism orqali izlash", "✍️ Hamma userlarga xabar yuborish"])
+        await ctx.reply('Userlarni korish uchun, ism yoki telefon raqam bilan izlashingiz mumkin', Object.assign({ parse_mode: 'HTML' }, telegraf_1.Markup.keyboard(["📱 Telefon raqam orqali", "🔎 Ism orqali izlash", "✍️ Hamma userlarga xabar yuborish", "🏠 Bosh menyu"])
             .oneTime()
             .resize()));
     }
@@ -473,7 +480,9 @@ let AdminService = class AdminService {
                 admin_id: `${ctx.from.id}`
             }
         });
-        await ctx.replyWithHTML('💁‍♂️ <b>Marhamat, userning telefon raqamini kiriting</b>');
+        await ctx.reply('💁‍♂️ <b>Marhamat, userning telefon raqamini kiriting</b>', Object.assign({ parse_mode: 'HTML' }, telegraf_1.Markup.keyboard(["🙍‍♂️ Mijozlarni bo'limiga qaytish", "🏠 Bosh menyu"])
+            .oneTime()
+            .resize()));
     }
     async searchUserByName(ctx) {
         await this.adminRepository.update({
@@ -483,7 +492,9 @@ let AdminService = class AdminService {
                 admin_id: `${ctx.from.id}`
             }
         });
-        await ctx.replyWithHTML('💁‍♂️ <b>Marhamat, userning ismini kiriting</b>');
+        await ctx.replyWithHTML('💁‍♂️ <b>Marhamat, userning ismini kiriting</b>', Object.assign({ parse_mode: 'HTML' }, telegraf_1.Markup.keyboard(["🙍‍♂️ Mijozlarni bo'limiga qaytish", "🏠 Bosh menyu"])
+            .oneTime()
+            .resize()));
     }
     async sendMessageAll(ctx) {
         await this.adminRepository.update({

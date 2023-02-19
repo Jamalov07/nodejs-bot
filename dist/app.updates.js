@@ -67,6 +67,9 @@ let AppUpdate = class AppUpdate {
     async mMenu(ctx) {
         return this.adminService.toMainMenu(ctx);
     }
+    async ReturnToSearchUser(ctx) {
+        return this.adminService.seeUsers(ctx);
+    }
     async deleteMaster(ctx) {
         return this.adminService.deleteMaster(ctx);
     }
@@ -119,6 +122,9 @@ let AppUpdate = class AppUpdate {
         return this.adminService.seeUsers(ctx);
     }
     async reSeeClients(ctx) {
+        return this.adminService.seeUsers(ctx);
+    }
+    async retur(ctx) {
         return this.adminService.seeUsers(ctx);
     }
     async searchUserByPhone(ctx) {
@@ -236,6 +242,13 @@ __decorate([
     __metadata("design:paramtypes", [telegraf_1.Context]),
     __metadata("design:returntype", Promise)
 ], AppUpdate.prototype, "mMenu", null);
+__decorate([
+    (0, nestjs_telegraf_1.Action)('returntosearch'),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "ReturnToSearchUser", null);
 __decorate([
     (0, nestjs_telegraf_1.Action)(/^(delmaster=\d+)/),
     __param(0, (0, nestjs_telegraf_1.Ctx)()),
@@ -362,6 +375,13 @@ __decorate([
     __metadata("design:paramtypes", [telegraf_1.Context]),
     __metadata("design:returntype", Promise)
 ], AppUpdate.prototype, "reSeeClients", null);
+__decorate([
+    (0, nestjs_telegraf_1.Hears)("🙍‍♂️ Mijozlarni bo'limiga qaytish"),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "retur", null);
 __decorate([
     (0, nestjs_telegraf_1.Hears)('📱 Telefon raqam orqali'),
     __param(0, (0, nestjs_telegraf_1.Ctx)()),

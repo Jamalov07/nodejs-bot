@@ -297,11 +297,23 @@ export class AdminService {
           }
         })
         if(oneUser) {
-          await ctx.reply(`<b>Ma'lumotlar</b>:\n<b>Userning ismi</b>:${oneUser.real_name}\n<b>Userning telefon raqami</b>:${oneUser.phone_number}\n`)
+          await ctx.reply(`<b>Ma'lumotlar</b>:\n<b>Userning ismi</b>:${oneUser.real_name}\n<b>Userning telefon raqami</b>:${oneUser.phone_number}\n`,{
+            parse_mode:'HTML',
+            ...Markup.inlineKeyboard([
+              [Markup.button.callback("❌ Mijozni ban qilish",`banuser=${oneUser.user_id}`)],
+              [Markup.button.callback("☑️ Mijozni ban dan yechish",`debanuser=${oneUser.user_id}`)],
+              [Markup.button.callback("✔️ Mijozni ban yoki ban emasligini tekshirish",`isban=${oneUser.user_id}`)],
+              [Markup.button.callback("📊 User haqida statistika chiqarish",`statuser=${oneUser.user_id}`)],
+              [Markup.button.callback("✍️ Mijozga sms yuborish",`msguser=${oneUser.user_id}`)],
+              [Markup.button.callback("🏠 User izlashga qaytish",'returntosearch')]
+            ])
+          })
         } else {
           await ctx.reply('Bunday raqamli user topilmadi',{
             parse_mode:"HTML",
             ...Markup.keyboard(["🏠 Bosh menyu","🙍‍♂️ Mijozlarni izlashda davom etish"])
+            .oneTime()
+            .resize()
           })
         }
       }
@@ -534,7 +546,7 @@ export class AdminService {
   async seeUsers(ctx:Context) {
     await ctx.reply('Userlarni korish uchun, ism yoki telefon raqam bilan izlashingiz mumkin',{
       parse_mode:'HTML',
-      ...Markup.keyboard(["📱 Telefon raqam orqali","🔎 Ism orqali izlash","✍️ Hamma userlarga xabar yuborish"])
+      ...Markup.keyboard(["📱 Telefon raqam orqali","🔎 Ism orqali izlash","✍️ Hamma userlarga xabar yuborish","🏠 Bosh menyu"])
         .oneTime()
         .resize()
     })
@@ -548,7 +560,12 @@ export class AdminService {
         admin_id:`${ctx.from.id}`
       }
     })
-    await ctx.replyWithHTML('💁‍♂️ <b>Marhamat, userning telefon raqamini kiriting</b>')
+    await ctx.reply('💁‍♂️ <b>Marhamat, userning telefon raqamini kiriting</b>',{
+      parse_mode:'HTML',
+      ...Markup.keyboard(["🙍‍♂️ Mijozlarni bo'limiga qaytish","🏠 Bosh menyu"])
+      .oneTime()
+      .resize()
+    })
   }
 
   async searchUserByName(ctx:Context) {
@@ -559,7 +576,12 @@ export class AdminService {
         admin_id:`${ctx.from.id}`
       }
     })
-    await ctx.replyWithHTML('💁‍♂️ <b>Marhamat, userning ismini kiriting</b>')
+    await ctx.replyWithHTML('💁‍♂️ <b>Marhamat, userning ismini kiriting</b>',{
+      parse_mode:'HTML',
+      ...Markup.keyboard(["🙍‍♂️ Mijozlarni bo'limiga qaytish","🏠 Bosh menyu"])
+      .oneTime()
+      .resize()
+    })
   }
 
   async sendMessageAll(ctx:Context) {
@@ -600,6 +622,11 @@ export class AdminService {
       ...Markup.inlineKeyboard([...serviceNames]),
     });
   }
+
+  async unBan(ctx: Context) {
+    
+  }
+
 }
 
 

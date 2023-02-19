@@ -20,6 +20,7 @@ export declare class AppUpdate {
     toMainMenu(ctx: Context): Promise<void>;
     complectMasters(ctx: Context): Promise<void>;
     mMenu(ctx: Context): Promise<void>;
+    ReturnToSearchUser(ctx: Context): Promise<void>;
     deleteMaster(ctx: Context): Promise<void>;
     deActiveMaster(ctx: Context): Promise<void>;
     showStats(ctx: Context): Promise<void>;
@@ -38,6 +39,7 @@ export declare class AppUpdate {
     clients(ctx: Context): Promise<void>;
     returnToUserMenu(ctx: Context): Promise<void>;
     reSeeClients(ctx: Context): Promise<void>;
+    retur(ctx: Context): Promise<void>;
     searchUserByPhone(ctx: Context): Promise<void>;
     searchByUserByName(ctx: Context): Promise<void>;
     onMessage(ctx: Context): Promise<void>;
