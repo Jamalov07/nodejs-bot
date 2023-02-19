@@ -122,7 +122,6 @@ export async function searchMasterNameFirst(ctx, user: User, masterRepo) {
       },
     ]);
   }
-  console.log("salom");
   return await ctx.reply("Natijalar:", {
     parse_mode: "HTML",
     ...Markup.inlineKeyboard([...masters]),

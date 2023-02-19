@@ -39,6 +39,13 @@ import { getDistance } from "./helpers/distance";
 import { select_master } from "./helpers/selectMaster";
 import { Ranking } from "./models/ranking.model";
 import { ranking_master } from "./helpers/toRanking";
+import { getSevenDeys } from "./helpers/getSevenDays";
+import { get_times } from "./helpers/getTime";
+import {
+  tima_pagination,
+  tima_paginationsFirst,
+} from "./helpers/timePagination";
+import { tanlangan_hizmatlar } from "./helpers/tanlanganHizmatlar";
 
 @Injectable()
 export class AppService {
@@ -160,6 +167,19 @@ export class AppService {
     user.paginationCount = +ctx.match["input"].split("-")[1];
     await user.save();
     await show_mijoz_location(ctx, user);
+  }
+  async onPaginationTime(ctx) {
+    let user = await this.userRepository.findOne({
+      where: { user_id: String(ctx.from.id) },
+    });
+
+    if (!user) {
+      return boshMenu(ctx);
+    }
+
+    user.paginationCount = +ctx.match["input"].split("-")[1];
+    await user.save();
+    await tima_pagination(ctx, user);
   }
 
   async onContact(ctx) {
@@ -309,6 +329,23 @@ export class AppService {
       user.last_state = "select_master";
       await user.save();
       await select_master(ctx, master);
+    } else if (user.last_state == "getSevenDays") {
+      const master = await this.masterRepository.findOne({
+        where: { master_id: user.selectMasterId },
+      });
+      if (!master) {
+        user.last_state = "main_mijoz";
+        await user.save();
+        return await mainMijoz(ctx);
+      }
+      user.last_state = "select_master";
+      await user.save();
+      await select_master(ctx, master);
+    } else if (user.last_state == "getTimes") {
+      user.last_state = "getSevenDays";
+      user.paginationCount = 0;
+      await user.save();
+      await getSevenDeys(ctx);
     }
   }
 
@@ -560,7 +597,6 @@ export class AppService {
         where: { master_id: user.selectMasterId },
       });
       const total_renk = ranks.reduce((a, b) => a + b.rank, 0) / ranks.length;
-      console.log(total_renk);
       const master = await this.masterRepository.findOne({
         where: { master_id: user.selectMasterId },
       });
@@ -575,6 +611,74 @@ export class AppService {
       user.last_state = "select_master";
       await user.save();
       await select_master(ctx, master);
+    }
+  }
+
+  async getDays(ctx) {
+    let user = await this.userRepository.findOne({
+      where: { user_id: String(ctx.from.id) },
+    });
+
+    if (!user) {
+      return boshMenu(ctx);
+    }
+    if (user.last_state == "select_master") {
+      user.last_state = "getSevenDays";
+      await user.save();
+      await getSevenDeys(ctx);
+    }
+  }
+  async getTimes(ctx) {
+    let user = await this.userRepository.findOne({
+      where: { user_id: String(ctx.from.id) },
+    });
+
+    if (!user) {
+      return boshMenu(ctx);
+    }
+    if (user.last_state == "getSevenDays") {
+      const master = await this.masterRepository.findOne({
+        where: { master_id: user.selectMasterId },
+      });
+      if (!master) {
+        user.last_state = "main_mijoz";
+        user.paginationCount = 0;
+        await user.save();
+        return await mainMijoz(ctx);
+      }
+      await get_times(ctx, user, this.orderRepository, master);
+      const ctxNew = await tima_paginationsFirst(ctx, user);
+      user.paginationCount = 0;
+      await user.save();
+      user.select_day = ctx.match["input"].split("-")[1];
+      user.last_state = "getTimes";
+      user.message_id = ctxNew.message_id;
+      await user.save();
+    }
+  }
+
+  async tanlanganHizmatlar(ctx) {
+    let user = await this.userRepository.findOne({
+      where: { user_id: String(ctx.from.id) },
+    });
+
+    if (!user) {
+      return boshMenu(ctx);
+    }
+    let orders = await this.orderRepository.findAll({
+      where: { user_id: user.user_id },
+    });
+
+    if (orders.length) {
+      orders.forEach(async (order) => {
+        const master = await this.masterRepository.findOne({
+          where: { master_id: order.master_id },
+        });
+
+        await tanlangan_hizmatlar(ctx, order, master);
+      });
+    } else {
+      ctx.reply("Hali hech qaysi hizmatga ro'yhatdan o'tmagansiz");
     }
   }
 }

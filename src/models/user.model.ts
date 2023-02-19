@@ -17,6 +17,7 @@ interface UserAttr {
   searchName: string;
   searchType: string;
   selectMasterId: string;
+  select_day: string;
 }
 @Table({ tableName: "user", timestamps: false })
 export class User extends Model<User, UserAttr> {
@@ -82,6 +83,10 @@ export class User extends Model<User, UserAttr> {
     type: DataType.STRING,
   })
   selectMasterId: string;
+  @Column({
+    type: DataType.STRING,
+  })
+  select_day: string;
   @Column({
     type: DataType.STRING(2000),
   })

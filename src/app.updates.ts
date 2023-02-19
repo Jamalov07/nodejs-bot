@@ -54,6 +54,10 @@ export class AppUpdate {
   async onLocation(@Ctx() ctx: Context) {
     return this.appService.onLocation(ctx);
   }
+  @Hears("TANLANGAN XIZMATLAR 📥")
+  async tanlangan_hizmatlar(@Ctx() ctx: Context) {
+    return this.appService.tanlanganHizmatlar(ctx);
+  }
   @Action(/^(service-\d+)/)
   async selectService(@Ctx() ctx: Context) {
     return this.appService.selectServices(ctx);
@@ -70,6 +74,10 @@ export class AppUpdate {
   async prevMastersLocation(@Ctx() ctx: Context) {
     return this.appService.onPaginationLocation(ctx);
   }
+  @Action(/(prevMastersTime-[^c])/)
+  async prevMastersTime(@Ctx() ctx: Context) {
+    return this.appService.onPaginationTime(ctx);
+  }
   @Action(/(master-[^c])/)
   async selectMaster(@Ctx() ctx: Context) {
     return this.appService.selectMaster(ctx);
@@ -82,9 +90,17 @@ export class AppUpdate {
   async getRank(@Ctx() ctx: Context) {
     return this.appService.getRank(ctx);
   }
+  @Action(/(day-[^c])/)
+  async getTimes(@Ctx() ctx: Context) {
+    return this.appService.getTimes(ctx);
+  }
   @Action("Ranking")
   async Ranking(@Ctx() ctx: Context) {
     return this.appService.toRankings(ctx);
+  }
+  @Action("getTimeOrder")
+  async getTimeOrder(@Ctx() ctx: Context) {
+    return this.appService.getDays(ctx);
   }
   @Action("goBack")
   async goBackAction(@Ctx() ctx: Context) {
