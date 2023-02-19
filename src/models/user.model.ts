@@ -9,6 +9,7 @@ interface UserAttr {
   status: boolean;
   last_state: string;
   real_name: string;
+  is_ban:boolean;
 }
 @Table({ tableName: "user", timestamps: false })
 export class User extends Model<User, UserAttr> {
@@ -51,4 +52,10 @@ export class User extends Model<User, UserAttr> {
     defaultValue: false,
   })
   status: boolean;
+
+  @Column({
+    type:DataType.BOOLEAN,
+    defaultValue:false
+  })
+  is_ban:boolean;
 }

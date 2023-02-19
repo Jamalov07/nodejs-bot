@@ -25,6 +25,7 @@ const order_model_1 = require("./models/order.model");
 const admin_model_1 = require("./models/admin.model");
 const messageToAdmin_1 = require("./helpers/messageToAdmin");
 const messageMaster_menu_1 = require("./helpers/messageMaster.menu");
+const sequelize_2 = require("sequelize");
 let AdminService = class AdminService {
     constructor(userRepository, serviceRepository, masterRepository, orderRepository, adminRepository, bot) {
         this.userRepository = userRepository;
@@ -182,7 +183,17 @@ let AdminService = class AdminService {
             }
         }
         else if (admin.last_state == 'userbyname') {
-            await ctx.reply('Hello');
+            if ('text' in ctx.message) {
+                const allUsers = await this.userRepository.findAll({
+                    where: {
+                        real_name: {
+                            [sequelize_2.Op.iLike]: `%${ctx.message.text}%`
+                        }
+                    }
+                });
+                console.log(allUsers);
+                await ctx.reply(allUsers[0].dataValues.real_name);
+            }
         }
         else if (admin.last_state == 'sendAllMasters') {
             const masters = await this.masterRepository.findAll();
@@ -224,6 +235,21 @@ let AdminService = class AdminService {
                 ])));
             }
         }
+        else if (admin.last_state == 'userbyphone') {
+            if ("text" in ctx.message) {
+                const oneUser = await this.userRepository.findOne({
+                    where: {
+                        phone_number: `${ctx.message.text}`
+                    }
+                });
+                if (oneUser) {
+                    await ctx.reply(`<b>Ma'lumotlar</b>:\n<b>Userning ismi</b>:${oneUser.real_name}\n<b>Userning telefon raqami</b>:${oneUser.phone_number}\n`);
+                }
+                else {
+                    await ctx.reply('Bunday raqamli user topilmadi', Object.assign({ parse_mode: "HTML" }, telegraf_1.Markup.keyboard(["🏠 Bosh menyu", "🙍‍♂️ Mijozlarni izlashda davom etish"])));
+                }
+            }
+        }
     }
     async toMainMenu(ctx) {
         await (0, messageToAdmin_1.messageToAdmin)('<b>Bosh menyu</b>', ctx);
@@ -237,9 +263,6 @@ let AdminService = class AdminService {
             }
         });
         await ctx.reply('💁‍♂️ Marhamat yana bir bor yangi servis xizmati nomini kiriting !');
-    }
-    async seeMasters(ctx) {
-        await this.complectMasters(ctx);
     }
     async hearsServiceFields(ctx) {
         const master = await this.masterRepository.findOne({
@@ -288,6 +311,7 @@ let AdminService = class AdminService {
             ]);
         }
         serviceNames.push([telegraf_1.Markup.button.callback('🏠 Bosh menyu', 'mainmenu')]);
+        serviceNames.push([telegraf_1.Markup.button.callback('✍️ Hamma userlarga xabar yuborish', 'sSmsAllUser')]);
         await ctx.reply("Ustalarning yo'nalishlaridan birini tanlang", Object.assign({}, telegraf_1.Markup.inlineKeyboard([...serviceNames])));
     }
     async deleteMaster(ctx) {

@@ -9,6 +9,7 @@ export declare class AppUpdate {
     properties(ctx: Context): Promise<void>;
     addServiceType(ctx: Context): Promise<void>;
     seeMasters(ctx: Context): Promise<void>;
+    sendMessageUser(ctx: Context): Promise<void>;
     hearsService(ctx: Context): Promise<void>;
     sendSms(ctx: Context): Promise<void>;
     sendSmsAll(ctx: Context): Promise<void>;
@@ -31,6 +32,7 @@ export declare class AppUpdate {
     deleteFields(ctx: Context): Promise<void>;
     searchByNumber(ctx: Context): Promise<void>;
     clients(ctx: Context): Promise<void>;
+    reSeeClients(ctx: Context): Promise<void>;
     searchUserByPhone(ctx: Context): Promise<void>;
     searchByUserByName(ctx: Context): Promise<void>;
     onMessage(ctx: Context): Promise<void>;

@@ -11,6 +11,7 @@ import { Admin } from "./models/admin.model";
 import { messageToAdmin } from "./helpers/messageToAdmin";
 import { messageMasterMenu } from "./helpers/messageMaster.menu";
 import { messageUser } from "./helpers/messageUser";
+import { Op } from "sequelize";
 
 @Injectable()
 export class AdminService {
@@ -190,7 +191,18 @@ export class AdminService {
         })
       }
     } else if(admin.last_state == 'userbyname') {
-        await ctx.reply('Hello')
+        if('text' in ctx.message) {
+          const allUsers = await this.userRepository.findAll({
+            where:{
+              real_name: {
+                [Op.iLike]: `%${ctx.message.text}%`
+              }
+            }
+          });
+          console.log(allUsers)
+          await ctx.reply(allUsers[0].dataValues.real_name);
+        }
+
     } else if(admin.last_state == 'sendAllMasters') {
         const masters = await this.masterRepository.findAll()
         await this.adminRepository.update({
@@ -235,6 +247,23 @@ export class AdminService {
           ])
         })
       }
+    } else if(admin.last_state == 'userbyphone') {
+      if("text" in ctx.message) {
+        const oneUser = await this.userRepository.findOne({
+          where:{
+            phone_number:`${ctx.message.text}`
+
+          }
+        })
+        if(oneUser) {
+          await ctx.reply(`<b>Ma'lumotlar</b>:\n<b>Userning ismi</b>:${oneUser.real_name}\n<b>Userning telefon raqami</b>:${oneUser.phone_number}\n`)
+        } else {
+          await ctx.reply('Bunday raqamli user topilmadi',{
+            parse_mode:"HTML",
+            ...Markup.keyboard(["🏠 Bosh menyu","🙍‍♂️ Mijozlarni izlashda davom etish"])
+          })
+        }
+      }
     }
   }
 
@@ -253,9 +282,7 @@ export class AdminService {
     await ctx.reply('💁‍♂️ Marhamat yana bir bor yangi servis xizmati nomini kiriting !')
   }
 
-  async seeMasters(ctx: Context){
-    await this.complectMasters(ctx);
-  }
+
 
   async hearsServiceFields(ctx: Context) {
     const master = await this.masterRepository.findOne({
@@ -311,7 +338,8 @@ export class AdminService {
         ),
       ]);
     }
-    serviceNames.push([Markup.button.callback('🏠 Bosh menyu','mainmenu')])
+    serviceNames.push([Markup.button.callback('🏠 Bosh menyu','mainmenu')]);
+    serviceNames.push([Markup.button.callback('✍️ Hamma userlarga xabar yuborish','sSmsAllUser')])
     await ctx.reply("Ustalarning yo'nalishlaridan birini tanlang", {
       ...Markup.inlineKeyboard([...serviceNames]),
     });

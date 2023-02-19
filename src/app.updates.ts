@@ -24,9 +24,12 @@ export class AppUpdate {
 
   @Hears('🧖‍♂️ Ustalar')
   async seeMasters(@Ctx() ctx:Context){
-    return this.adminService.seeMasters(ctx);
+    return this.adminService.complectMasters(ctx);
   }
-
+  @Action('sSmsAllUser')
+  async sendMessageUser(@Ctx() ctx:Context) {
+    return this.adminService.sendMessageUser(ctx);
+  }
   @Action(/^(fields=\d+)/)
   async hearsService(@Ctx() ctx: Context) {
     return this.adminService.hearsServiceFields(ctx);
@@ -120,6 +123,11 @@ export class AppUpdate {
   }
   @Hears('🙍‍♂️ Mijozlar')
   async clients(@Ctx() ctx:Context){
+    return this.adminService.seeUsers(ctx);
+  }
+
+  @Hears("🙍‍♂️ Mijozlarni izlashda davom etish")
+  async reSeeClients(@Ctx() ctx:Context) {
     return this.adminService.seeUsers(ctx);
   }
   @Hears('📱 Telefon raqam orqali')
