@@ -55,7 +55,30 @@ let AppService = class AppService {
         this.bot = bot;
     }
     async onStart(ctx) {
-        return await (0, boshMenu_1.boshMenu)(ctx);
+        const user = await this.userRepository.findOne({
+            where: { user_id: `${ctx.from.id}` },
+        });
+        const master = await this.masterRepository.findOne({
+            where: { master_id: `${ctx.from.id}` },
+        });
+        if (user && !master) {
+            return await (0, boshMenu_1.boshMenu)(ctx);
+        }
+        else if (master && !user) {
+            if (master.status && master.last_state === "finish") {
+                await ctx.reply("O'zingizga kerakli bo'lgan bo'limni tanlang", Object.assign({ parse_mode: "HTML" }, telegraf_1.Markup.keyboard([
+                    ["👥 Mijozlar", "🕔 Vaqt", "📊 Reyting"],
+                    ["🔄 Ma'lumotlarni o'zgartirish"],
+                ])
+                    .oneTime()
+                    .resize()));
+            }
+        }
+        else {
+            await ctx.reply("Assalomu alaykum. Hush kelibsiz, botdan birinchi martda foydalanayotganingiz uchun ro'yhatdan o'tishingiz lozim", Object.assign({ parse_mode: "HTML" }, telegraf_1.Markup.keyboard([["👤 Ro'yhatdan o'tish"]])
+                .oneTime()
+                .resize()));
+        }
     }
     async registration(ctx) {
         const user = await this.userRepository.findOne({
@@ -156,7 +179,7 @@ let AppService = class AppService {
                     await (0, searchMasterName_1.searchMasterNameFirst)(ctx, user, this.masterRepository);
                 }
             }
-            else if (master) {
+            if (master) {
                 if (master.last_state === "name") {
                     await master.update({
                         name: ctx.message.text,
@@ -710,7 +733,7 @@ let AppService = class AppService {
                     ]).resize()));
                 }
             }
-            else if (master) {
+            if (master) {
                 if (master.last_state === "phone_number") {
                     if (ctx.from.id == ctx.message.contact.user_id) {
                         await master.update({
@@ -790,7 +813,7 @@ let AppService = class AppService {
                     await (0, searchMasterLocation_1.show_mijoz_locationsFirst)(ctx, user);
                 }
             }
-            else if (master) {
+            if (master) {
                 if (master.last_state === "location") {
                     master.update({
                         location: `${ctx.message.location.latitude},${ctx.message.location.latitude}`,
@@ -829,7 +852,7 @@ let AppService = class AppService {
         });
         if (user) {
         }
-        else if (master) {
+        if (master) {
             if (master.last_state === "finish") {
                 const serviceName = master.service_name
                     ? `\n🏛 Ustaxona nomi: ${master.service_name}`

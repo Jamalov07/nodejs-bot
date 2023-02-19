@@ -53,7 +53,6 @@ import { tanlangan_hizmatlar } from "./helpers/tanlanganHizmatlar";
 import { sendSMSMaster } from "./helpers/sendMasterSms";
 import { services_mijoz } from "./helpers/services";
 
-
 @Injectable()
 export class AppService {
   constructor(
@@ -66,44 +65,43 @@ export class AppService {
     @InjectBot(MyBotName) private readonly bot: Telegraf<Context>
   ) {}
 
-  // async onStart(ctx: Context) {
-
-  //   const user = await this.userRepository.findOne({
-  //     where: { user_id: `${ctx.from.id}` },
-  //   });
-  //   const master = await this.masterRepository.findOne({
-  //     where: { master_id: `${ctx.from.id}` },
-  //   });
-  //   if (user) {
-  //   } else if (master) {
-  //     if (master.status && master.last_state === "finish") {
-  //       await ctx.reply("O'zingizga kerakli bo'lgan bo'limni tanlang", {
-  //         parse_mode: "HTML",
-  //         ...Markup.keyboard([
-  //           ["👥 Mijozlar", "🕔 Vaqt", "📊 Reyting"],
-  //           ["🔄 Ma'lumotlarni o'zgartirish"],
-  //         ])
-  //           .oneTime()
-  //           .resize(),
-  //       });
-  //     }
-  //   } else {
-  //     await ctx.reply(
-  //       "Assalomu alaykum. Hush kelibsiz, botdan birinchi martda foydalanayotganingiz uchun ro'yhatdan o'tishingiz lozim",
-  //       {
-  //         parse_mode: "HTML",
-  //         ...Markup.keyboard([["👤 Ro'yhatdan o'tish"]])
-  //           .oneTime()
-  //           .resize(),
-  //       }
-  //     );
-  //   }
-  // }
-
   async onStart(ctx: Context) {
-    return await boshMenu(ctx);
+    const user = await this.userRepository.findOne({
+      where: { user_id: `${ctx.from.id}` },
+    });
+    const master = await this.masterRepository.findOne({
+      where: { master_id: `${ctx.from.id}` },
+    });
+    if (user && !master) {
+      return await boshMenu(ctx);
+    } else if (master && !user) {
+      if (master.status && master.last_state === "finish") {
+        await ctx.reply("O'zingizga kerakli bo'lgan bo'limni tanlang", {
+          parse_mode: "HTML",
+          ...Markup.keyboard([
+            ["👥 Mijozlar", "🕔 Vaqt", "📊 Reyting"],
+            ["🔄 Ma'lumotlarni o'zgartirish"],
+          ])
+            .oneTime()
+            .resize(),
+        });
+      }
+    } else {
+      await ctx.reply(
+        "Assalomu alaykum. Hush kelibsiz, botdan birinchi martda foydalanayotganingiz uchun ro'yhatdan o'tishingiz lozim",
+        {
+          parse_mode: "HTML",
+          ...Markup.keyboard([["👤 Ro'yhatdan o'tish"]])
+            .oneTime()
+            .resize(),
+        }
+      );
+    }
   }
 
+  // async onStart(ctx: Context) {
+  //   return await boshMenu(ctx);
+  // }
 
   async registration(ctx: Context) {
     const user = await this.userRepository.findOne({
@@ -222,7 +220,8 @@ export class AppService {
           await user.save();
           await searchMasterNameFirst(ctx, user, this.masterRepository);
         }
-      } else if (master) {
+      }
+      if (master) {
         if (master.last_state === "name") {
           await master.update({
             name: ctx.message.text,
@@ -977,7 +976,8 @@ export class AppService {
             }
           );
         }
-      } else if (master) {
+      }
+      if (master) {
         if (master.last_state === "phone_number") {
           if (ctx.from.id == ctx.message.contact.user_id) {
             await master.update({
@@ -1055,7 +1055,7 @@ export class AppService {
               });
             }
           }
-  
+
           distances.sort((a, b) => a.distance - b.distance);
           user.distance = JSON.stringify(distances);
           user.message_id = String(ctx.message.message_id + 2);
@@ -1066,10 +1066,11 @@ export class AppService {
             parse_mode: "HTML",
             ...Markup.keyboard([["orqaga ↩️"]]).resize(),
           });
-  
+
           await show_mijoz_locationsFirst(ctx, user);
         }
-      } else if (master) {
+      }
+      if (master) {
         if (master.last_state === "location") {
           master.update({
             location: `${ctx.message.location.latitude},${ctx.message.location.latitude}`,
@@ -1081,29 +1082,29 @@ export class AppService {
     }
   }
 
-// 
-async onLocationMijoz(ctx) {
-  try {
-    let user = await this.userRepository.findOne({
-      where: { user_id: String(ctx.from.id) },
-    });
+  //
+  async onLocationMijoz(ctx) {
+    try {
+      let user = await this.userRepository.findOne({
+        where: { user_id: String(ctx.from.id) },
+      });
 
-    if (!user) {
-      return boshMenu(ctx);
+      if (!user) {
+        return boshMenu(ctx);
+      }
+
+      if (user.last_state === "select_service") {
+        user.searchType = "location";
+
+        user.last_state = "searchLocationService";
+        await user.save();
+        await search_mijoz_location(ctx);
+      }
+    } catch (error) {
+      console.log(error);
     }
-
-    if (user.last_state === "select_service") {
-      user.searchType = "location";
-
-      user.last_state = "searchLocationService";
-      await user.save();
-      await search_mijoz_location(ctx);
-    }
-  } catch (error) {
-    console.log(error);
   }
-}
-// 
+  //
   async requestToAdmin(ctx: Context) {
     const user = await this.userRepository.findOne({
       where: { user_id: `${ctx.from.id}` },
@@ -1112,7 +1113,8 @@ async onLocationMijoz(ctx) {
       where: { master_id: `${ctx.from.id}` },
     });
     if (user) {
-    } else if (master) {
+    }
+    if (master) {
       if (master.last_state === "finish") {
         const serviceName = master.service_name
           ? `\n🏛 Ustaxona nomi: ${master.service_name}`
@@ -2099,10 +2101,7 @@ async onLocationMijoz(ctx) {
     });
   }
 
-
-
   // ==============
-
 
   async onMijoz(ctx: Context) {
     try {
@@ -2136,7 +2135,6 @@ async onLocationMijoz(ctx) {
       console.log(error);
     }
   }
-
 
   async onPaginationName(ctx) {
     try {
@@ -2458,8 +2456,6 @@ async onLocationMijoz(ctx) {
       console.log(error);
     }
   }
-  
-
 
   async selectMaster(ctx) {
     try {
@@ -2745,6 +2741,4 @@ async onLocationMijoz(ctx) {
       console.log(error);
     }
   }
-
-
 }

@@ -255,7 +255,8 @@ export class AdminService {
         },
         include: { all: true },
       });
-      const myString = master[0].dataValues.price;
+      const myString = master[0].price;
+      console.log(myString);
       const myNumber = parseFloat(myString.replace(/[^\d.]/g, ""));
       const countSum = myNumber * order.length;
       const countTax = ((countSum * 30) / 100) * 5;
