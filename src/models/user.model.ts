@@ -10,6 +10,15 @@ interface UserAttr {
   last_state: string;
   real_name: string;
   message_id: string;
+  is_ban: boolean;
+  location: string;
+  distance: string;
+  paginationCount: number;
+  service_id: number;
+  searchName: string;
+  searchType: string;
+  selectMasterId: string;
+  select_day: string;
 }
 @Table({ tableName: "user", timestamps: false })
 export class User extends Model<User, UserAttr> {
@@ -54,4 +63,38 @@ export class User extends Model<User, UserAttr> {
   status: boolean;
   @Column({ type: DataType.STRING })
   message_id: string;
+  @Column({
+    type: DataType.BOOLEAN,
+    defaultValue: false,
+  })
+  is_ban: boolean;
+  location: string;
+  @Column({
+    type: DataType.INTEGER,
+  })
+  paginationCount: number;
+  @Column({
+    type: DataType.INTEGER,
+  })
+  service_id: number;
+  @Column({
+    type: DataType.STRING,
+  })
+  searchName: string;
+  @Column({
+    type: DataType.STRING,
+  })
+  searchType: string;
+  @Column({
+    type: DataType.STRING,
+  })
+  selectMasterId: string;
+  @Column({
+    type: DataType.STRING,
+  })
+  select_day: string;
+  @Column({
+    type: DataType.STRING(2000),
+  })
+  distance: string;
 }

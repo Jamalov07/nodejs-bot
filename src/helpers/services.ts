@@ -1,10 +1,12 @@
-import { Service_type } from "./../models/service_type.model";
+import { Context, Markup } from "telegraf";
 
-export async function services() {
-  const services = await Service_type.findAll();
-  let serviceNames = [];
-  for (let i = 0; i < services.length; i++) {
-    serviceNames.push(services[i].name);
+export async function services_mijoz(ctx: Context, services) {
+  try {
+    ctx.reply("MAVJUD XIZMATLAR RO’YXATI", {
+      parse_mode: "HTML",
+      ...Markup.inlineKeyboard([...services]),
+    });
+  } catch (error) {
+    console.log(error);
   }
-  return  serviceNames;
 }

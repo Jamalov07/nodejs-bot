@@ -11,11 +11,14 @@ const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
 const sequelize_1 = require("@nestjs/sequelize");
 const nestjs_telegraf_1 = require("nestjs-telegraf");
+const admin_service_1 = require("./admin.service");
 const app_constants_1 = require("./app.constants");
 const app_service_1 = require("./app.service");
 const app_updates_1 = require("./app.updates");
+const admin_model_1 = require("./models/admin.model");
 const master_model_1 = require("./models/master.model");
 const order_model_1 = require("./models/order.model");
+const ranking_model_1 = require("./models/ranking.model");
 const service_type_model_1 = require("./models/service_type.model");
 const user_model_1 = require("./models/user.model");
 let AppModule = class AppModule {
@@ -34,7 +37,14 @@ AppModule = __decorate([
             config_1.ConfigModule.forRoot({
                 envFilePath: `.env`,
             }),
-            sequelize_1.SequelizeModule.forFeature([user_model_1.User, order_model_1.Order, service_type_model_1.Service_type, master_model_1.Master]),
+            sequelize_1.SequelizeModule.forFeature([
+                user_model_1.User,
+                order_model_1.Order,
+                service_type_model_1.Service_type,
+                master_model_1.Master,
+                admin_model_1.Admin,
+                ranking_model_1.Ranking,
+            ]),
             sequelize_1.SequelizeModule.forRoot({
                 dialect: "postgres",
                 host: process.env.POSTGRES_HOST,
@@ -42,12 +52,12 @@ AppModule = __decorate([
                 username: process.env.POSTGRES_USER,
                 password: process.env.POSTGRES_PASSWORD,
                 database: process.env.POSTGRES_DB,
-                models: [user_model_1.User, order_model_1.Order, service_type_model_1.Service_type, master_model_1.Master],
+                models: [user_model_1.User, order_model_1.Order, service_type_model_1.Service_type, master_model_1.Master, admin_model_1.Admin, ranking_model_1.Ranking],
                 autoLoadModels: true,
                 logging: false,
             }),
         ],
-        providers: [app_service_1.AppService, app_updates_1.AppUpdate],
+        providers: [app_service_1.AppService, app_updates_1.AppUpdate, admin_service_1.AdminService],
     })
 ], AppModule);
 exports.AppModule = AppModule;

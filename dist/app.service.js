@@ -23,39 +23,39 @@ const sequelize_2 = require("sequelize");
 const service_type_model_1 = require("./models/service_type.model");
 const master_model_1 = require("./models/master.model");
 const order_model_1 = require("./models/order.model");
+const admin_model_1 = require("./models/admin.model");
+const getServices_1 = require("./helpers/getServices");
+const returnMenuForUser_1 = require("./helpers/returnMenuForUser");
+const boshMenu_1 = require("./helpers/boshMenu");
+const mijoz_ism_1 = require("./helpers/mijoz_ism");
+const mijoz_phone_1 = require("./helpers/mijoz_phone");
+const main_mijoz_1 = require("./helpers/main_mijoz");
+const changeMijozData_1 = require("./helpers/changeMijozData");
+const searchMasterName_1 = require("./helpers/searchMasterName");
+const searchRatingMaster_1 = require("./helpers/searchRatingMaster");
+const searchMasterLocation_1 = require("./helpers/searchMasterLocation");
+const distance_1 = require("./helpers/distance");
+const selectMaster_1 = require("./helpers/selectMaster");
+const ranking_model_1 = require("./models/ranking.model");
+const toRanking_1 = require("./helpers/toRanking");
+const getSevenDays_1 = require("./helpers/getSevenDays");
+const getTime_1 = require("./helpers/getTime");
+const timePagination_1 = require("./helpers/timePagination");
+const tanlanganHizmatlar_1 = require("./helpers/tanlanganHizmatlar");
+const sendMasterSms_1 = require("./helpers/sendMasterSms");
+const services_1 = require("./helpers/services");
 let AppService = class AppService {
-    constructor(userRepository, serviceRepository, masterRepository, orderRepository, bot) {
+    constructor(userRepository, serviceRepository, masterRepository, orderRepository, adminRepository, rankingRepository, bot) {
         this.userRepository = userRepository;
         this.serviceRepository = serviceRepository;
         this.masterRepository = masterRepository;
         this.orderRepository = orderRepository;
+        this.adminRepository = adminRepository;
+        this.rankingRepository = rankingRepository;
         this.bot = bot;
     }
     async onStart(ctx) {
-        console.log("11111");
-        const user = await this.userRepository.findOne({
-            where: { user_id: `${ctx.from.id}` },
-        });
-        const master = await this.masterRepository.findOne({
-            where: { master_id: `${ctx.from.id}` },
-        });
-        if (user) {
-        }
-        else if (master) {
-            if (master.status && master.last_state === "finish") {
-                await ctx.reply("O'zingizga kerakli bo'lgan bo'limni tanlang", Object.assign({ parse_mode: "HTML" }, telegraf_1.Markup.keyboard([
-                    ["👥 Mijozlar", "🕔 Vaqt", "📊 Reyting"],
-                    ["🔄 Ma'lumotlarni o'zgartirish"],
-                ])
-                    .oneTime()
-                    .resize()));
-            }
-        }
-        else {
-            await ctx.reply("Assalomu alaykum. Hush kelibsiz, botdan birinchi martda foydalanayotganingiz uchun ro'yhatdan o'tishingiz lozim", Object.assign({ parse_mode: "HTML" }, telegraf_1.Markup.keyboard([["👤 Ro'yhatdan o'tish"]])
-                .oneTime()
-                .resize()));
-        }
+        return await (0, boshMenu_1.boshMenu)(ctx);
     }
     async registration(ctx) {
         const user = await this.userRepository.findOne({
@@ -125,8 +125,36 @@ let AppService = class AppService {
         const master = await this.masterRepository.findOne({
             where: { master_id: `${ctx.from.id}` },
         });
+        const admin = await this.adminRepository.findOne({
+            where: {
+                admin_id: String(ctx.from.id),
+            },
+        });
         if ("text" in ctx.message) {
             if (user) {
+                if (user.last_state === "register_mijoz") {
+                    user.real_name = ctx.message.text;
+                    user.last_state = "contact_mijoz";
+                    await user.save();
+                    (0, mijoz_phone_1.mijoz_phone)(ctx);
+                }
+                else if (user.last_state === "change_mijoz_name") {
+                    user.real_name = ctx.message.text;
+                    user.last_state = "change_mijoz";
+                    await user.save();
+                    ctx.reply("Ism muvaffaqiyatli o'zgardi ✅, O'zgartirmoqchi bo'lgan ma'lumotingizni tanlang", Object.assign({ parse_mode: "HTML" }, telegraf_1.Markup.keyboard([
+                        ["Ism, Familiya ✏️"],
+                        ["Telefon raqam 📞"],
+                        ["orqaga ↩️"],
+                    ]).resize()));
+                }
+                else if (user.last_state === "searchNameService") {
+                    const searchName = ctx.message.text;
+                    user.paginationCount = 0;
+                    user.searchName = searchName;
+                    await user.save();
+                    await (0, searchMasterName_1.searchMasterNameFirst)(ctx, user, this.masterRepository);
+                }
             }
             else if (master) {
                 if (master.last_state === "name") {
@@ -323,6 +351,337 @@ let AppService = class AppService {
                     }
                 }
             }
+            else if (admin) {
+                if (admin.last_state == "addnewService") {
+                    if ("text" in ctx.message) {
+                        const check = await this.serviceRepository.findOne({
+                            where: {
+                                name: `${ctx.message.text}`,
+                            },
+                        });
+                        const services = await this.serviceRepository.findAll();
+                        if (check) {
+                            await (0, getServices_1.getterServices)(services, ctx);
+                            await ctx.reply("<b>Bunday nomli xizmat mavjud !</b>", Object.assign({ parse_mode: "HTML" }, telegraf_1.Markup.keyboard([
+                                [
+                                    "♻️ Yana qo'shish",
+                                    "🏠 Bosh menyu",
+                                    "🧰 Xizmatlar bo'limiga qaytish",
+                                ],
+                            ])
+                                .oneTime()
+                                .resize()));
+                        }
+                        else {
+                            await this.serviceRepository.create({
+                                name: String(ctx.message.text),
+                            });
+                            const nServices = await this.serviceRepository.findAll();
+                            admin.last_state = "finish";
+                            await admin.save();
+                            await (0, getServices_1.getterServices)(nServices, ctx);
+                            await ctx.reply("<b>Muvaffaqiyatli qoshildi !</b>", Object.assign({ parse_mode: "HTML" }, telegraf_1.Markup.keyboard([
+                                [
+                                    "♻️ Yana qo'shish",
+                                    "🏠 Bosh menyu",
+                                    "🙍‍♂️ Mijozlar bo'limiga qaytish",
+                                ],
+                            ])
+                                .oneTime()
+                                .resize()));
+                        }
+                    }
+                }
+                else if (admin.last_state === "searchbynamemaster") {
+                    if ("text" in ctx.message) {
+                        const data = await this.masterRepository.findOne({
+                            where: {
+                                name: `${ctx.message.text}`,
+                                service_id: admin.search_master_state,
+                                status: true,
+                            },
+                        });
+                        if (data) {
+                            await this.adminRepository.update({
+                                last_state: "finish",
+                            }, {
+                                where: {
+                                    admin_id: `${ctx.from.id}`,
+                                },
+                            });
+                            await ctx.reply(`Ismi: <b>${data.name}</b>\naddress:<b>${data.address}</b>\nrating:<b>${data.rating}</b>\ntelefon raqami:<b>${data.phone_number}</b>\nxizmat narxi:<b>${data.price}</b>`, Object.assign({ parse_mode: "HTML" }, telegraf_1.Markup.inlineKeyboard([
+                                [
+                                    telegraf_1.Markup.button.callback("❌ Ustani o'chirish", `delmaster=${data.master_id}`),
+                                ],
+                                [
+                                    telegraf_1.Markup.button.callback("✔️ Ustani aktiv emas qilib qo'yish", `deactivemas=${data.master_id}`),
+                                ],
+                                [
+                                    telegraf_1.Markup.button.callback("📊 Statistikani ko'rish", `showstats=${data.master_id}`),
+                                ],
+                                [
+                                    telegraf_1.Markup.button.callback("📝 Ustaga reklama yoki xabar yuborish", `sendmess=${data.master_id}`),
+                                ],
+                                [telegraf_1.Markup.button.callback("🏠 Bosh menyu", "mainmenu")],
+                            ])));
+                        }
+                        else {
+                            admin.search_master_state = 0;
+                            admin.last_state = "finish";
+                            await admin.save();
+                            await ctx.replyWithHTML(`<b>Ushbu yo'nalishda bunday nomli usta yo'q</b>`);
+                            await this.complectMasters(ctx);
+                        }
+                    }
+                }
+                else if (admin.last_state === "searchbynumbermaster") {
+                    if ("text" in ctx.message) {
+                        const data = await this.masterRepository.findOne({
+                            where: {
+                                phone_number: ctx.message.text,
+                                service_id: admin.search_master_state,
+                                status: true,
+                            },
+                        });
+                        if (data) {
+                            await ctx.reply(`Ismi: <b>${data.name}</b>\naddress:<b>${data.address}</b>\nrating:<b>${data.rating}</b>\ntelefon raqami:<b>${data.phone_number}</b>\nxizmat narxi:<b>${data.price}</b>`, Object.assign({ parse_mode: "HTML" }, telegraf_1.Markup.inlineKeyboard([
+                                [
+                                    telegraf_1.Markup.button.callback("❌ Ustani o'chirish", `delmaster=${data.master_id}`),
+                                ],
+                                [
+                                    telegraf_1.Markup.button.callback("✔️ Ustani aktiv emas qilib qo'yish", `deactivemas=${data.master_id}`),
+                                ],
+                                [
+                                    telegraf_1.Markup.button.callback("📊 Statistikani ko'rish", `showstats=${data.master_id}`),
+                                ],
+                                [
+                                    telegraf_1.Markup.button.callback("📝 Ustaga reklama yoki xabar yuborish", `sendmess=${data.master_id}`),
+                                ],
+                                [
+                                    telegraf_1.Markup.button.callback("✍️ Hammaga xabar yuborish", "sendAllSms"),
+                                ],
+                                [telegraf_1.Markup.button.callback("🏠 Bosh menyu", "mainmenu")],
+                            ])));
+                        }
+                        else {
+                            admin.search_master_state = 0;
+                            admin.last_state = "finish";
+                            await admin.save();
+                            await ctx.reply(`<b>Ushbu yo'nalishda bunday raqamli usta yo'q</b>`, Object.assign({ parse_mode: "HTML" }, telegraf_1.Markup.keyboard([
+                                "🏠 Bosh menyu",
+                                "👨‍⚕️ Usta yo'nalishlariga qaytish",
+                                "📱 Yana telefon raqami orqali izlash",
+                            ])
+                                .oneTime()
+                                .resize()));
+                        }
+                    }
+                }
+                else if (admin.last_state == "sendMessage") {
+                    if ("text" in ctx.message) {
+                        await ctx.telegram.sendMessage(admin.target_user_id, `<b>Xurmatli mutahassis! Sizga admin tomonidan xabar yuborildi</b>:\n${ctx.message.text}`, {
+                            parse_mode: "HTML",
+                        });
+                        await ctx.reply("✍️ Ustaga xabaringiz yuborildi");
+                        await this.complectMasters(ctx);
+                    }
+                }
+                else if (admin.last_state == "updatefield") {
+                    if ("text" in ctx.message) {
+                        await this.serviceRepository.update({
+                            name: String(ctx.message.text),
+                        }, {
+                            where: {
+                                id: admin.target_service_type_id,
+                            },
+                        });
+                        const service = await this.serviceRepository.findAll();
+                        await (0, getServices_1.getterServices)(service, ctx);
+                        admin.last_state = "finish";
+                        await admin.save();
+                        await ctx.reply("Muvvafiqatli ozgartirildi !\n Davom etish uchun quyidagi buttonlardan birini tanlang", Object.assign({ parse_mode: "HTML" }, telegraf_1.Markup.keyboard([
+                            "🔄 Yana boshqa service typeni o'zgartirish",
+                            "🏠 Bosh menyu",
+                        ])
+                            .oneTime()
+                            .resize()));
+                    }
+                }
+                else if (admin.last_state == "userbyname") {
+                    if ("text" in ctx.message) {
+                        const oldUser = await this.userRepository.findAll({
+                            where: {
+                                real_name: {
+                                    [sequelize_2.Op.iLike]: `%${ctx.message.text}%`,
+                                },
+                            },
+                            offset: 0,
+                        });
+                        const allUsers = await this.userRepository.findAll({
+                            where: {
+                                real_name: {
+                                    [sequelize_2.Op.iLike]: `%${ctx.message.text}%`,
+                                },
+                            },
+                            limit: 1,
+                            offset: 0,
+                        });
+                        console.log(oldUser.length);
+                        if (oldUser.length == 1) {
+                            await ctx.reply(`Ismi:${allUsers[0].real_name}\nTelefon raqami:${allUsers[0].phone_number}`, Object.assign({ parse_mode: "HTML" }, telegraf_1.Markup.inlineKeyboard([
+                                [
+                                    telegraf_1.Markup.button.callback("❌ Mijozni ban qilish", `banuser=${allUsers[0].user_id}`),
+                                ],
+                                [
+                                    telegraf_1.Markup.button.callback("☑️ Mijozni ban dan yechish", `debanuser=${allUsers[0].user_id}`),
+                                ],
+                                [
+                                    telegraf_1.Markup.button.callback("✔️ Mijozni ban yoki ban emasligini tekshirish", `isban=${allUsers[0].user_id}`),
+                                ],
+                                [
+                                    telegraf_1.Markup.button.callback("📊 User haqida statistika chiqarish", `statuser=${allUsers[0].user_id}`),
+                                ],
+                                [
+                                    telegraf_1.Markup.button.callback("✍️ Mijozga sms yuborish", `msguser=${allUsers[0].user_id}`),
+                                ],
+                                [
+                                    telegraf_1.Markup.button.callback("🏠 User izlashga qaytish", "returntosearch"),
+                                ],
+                            ])));
+                        }
+                        else if (oldUser.length < 1) {
+                            await (0, returnMenuForUser_1.returnMenuForUser)(ctx, "<b>Bunday nomli user yoq</b>");
+                        }
+                        else {
+                            const listIndicator = [];
+                            if (1 > 1) {
+                                listIndicator.push(telegraf_1.Markup.button.callback("⏮ Oldingi", `prev=${0}`));
+                            }
+                            if (0 + 1 < oldUser.length) {
+                                listIndicator.push(telegraf_1.Markup.button.callback("⏭ Keyingisi", `next=${ctx.message.text}=${0 + 1}`));
+                            }
+                            await ctx.replyWithHTML(`<b>Bunday ismli user ko'p</b>`);
+                            await ctx.reply(`Ismi:${allUsers[0].real_name}\nTelefon raqami:${allUsers[0].phone_number}`, Object.assign({ parse_mode: "HTML" }, telegraf_1.Markup.inlineKeyboard([
+                                [
+                                    telegraf_1.Markup.button.callback("❌ Mijozni ban qilish", `banuser=${allUsers[0].user_id}`),
+                                ],
+                                [
+                                    telegraf_1.Markup.button.callback("☑️ Mijozni ban dan yechish", `debanuser=${allUsers[0].user_id}`),
+                                ],
+                                [
+                                    telegraf_1.Markup.button.callback("✔️ Mijozni ban yoki ban emasligini tekshirish", `isban=${allUsers[0].user_id}`),
+                                ],
+                                [
+                                    telegraf_1.Markup.button.callback("📊 User haqida statistika chiqarish", `statuser=${allUsers[0].user_id}`),
+                                ],
+                                [
+                                    telegraf_1.Markup.button.callback("✍️ Mijozga sms yuborish", `msguser=${allUsers[0].user_id}`),
+                                ],
+                                [
+                                    telegraf_1.Markup.button.callback("🏠 User izlashga qaytish", "returntosearch"),
+                                ],
+                                listIndicator,
+                            ])));
+                        }
+                    }
+                }
+                else if (admin.last_state == "sendAllMasters") {
+                    const masters = await this.masterRepository.findAll();
+                    await this.adminRepository.update({
+                        last_state: "finish",
+                    }, {
+                        where: {
+                            admin_id: `${ctx.from.id}`,
+                        },
+                    });
+                    if ("text" in ctx.message) {
+                        for (let x of masters) {
+                            await ctx.telegram.sendMessage(`${x.master_id}`, `<b>Xurmatli mutahassis! Admin tomonidan sizga xabar yuborildi</b>:\n ${ctx.message.text}`, {
+                                parse_mode: "HTML",
+                            });
+                        }
+                        await ctx.reply("Xabaringiz jonatildi", Object.assign({ parse_mode: "HTML" }, telegraf_1.Markup.inlineKeyboard([
+                            [telegraf_1.Markup.button.callback("🏠 Bosh menu", "mainmenu")],
+                        ])));
+                    }
+                }
+                else if (admin.last_state == "sendsmstouser") {
+                    const users = await this.userRepository.findAll();
+                    await this.adminRepository.update({
+                        last_state: "finish",
+                    }, {
+                        where: {
+                            admin_id: `${ctx.from.id}`,
+                        },
+                    });
+                    if ("text" in ctx.message) {
+                        for (let x of users) {
+                            await ctx.telegram.sendMessage(`${x.user_id}`, `<b>Xurmatli foydalanuvchi! Admin tomonidan sizga xabar yuborildi</b>:\n ${ctx.message.text}`, {
+                                parse_mode: "HTML",
+                            });
+                        }
+                        await ctx.reply("Xabaringiz jonatildi", Object.assign({ parse_mode: "HTML" }, telegraf_1.Markup.inlineKeyboard([
+                            [telegraf_1.Markup.button.callback("🏠 Bosh menu", "mainmenu")],
+                        ])));
+                    }
+                }
+                else if (admin.last_state == "userbyphone") {
+                    if ("text" in ctx.message) {
+                        const oneUser = await this.userRepository.findOne({
+                            where: {
+                                phone_number: `${ctx.message.text}`,
+                            },
+                        });
+                        if (oneUser) {
+                            await ctx.reply(`<b>Ma'lumotlar</b>:\n<b>Userning ismi</b>:${oneUser.real_name}\n<b>Userning telefon raqami</b>:${oneUser.phone_number}\n`, Object.assign({ parse_mode: "HTML" }, telegraf_1.Markup.inlineKeyboard([
+                                [
+                                    telegraf_1.Markup.button.callback("❌ Mijozni ban qilish", `banuser=${oneUser.user_id}`),
+                                ],
+                                [
+                                    telegraf_1.Markup.button.callback("☑️ Mijozni ban dan yechish", `debanuser=${oneUser.user_id}`),
+                                ],
+                                [
+                                    telegraf_1.Markup.button.callback("✔️ Mijozni ban yoki ban emasligini tekshirish", `isban=${oneUser.user_id}`),
+                                ],
+                                [
+                                    telegraf_1.Markup.button.callback("📊 User haqida statistika chiqarish", `statuser=${oneUser.user_id}`),
+                                ],
+                                [
+                                    telegraf_1.Markup.button.callback("✍️ Mijozga sms yuborish", `msguser=${oneUser.user_id}`),
+                                ],
+                                [
+                                    telegraf_1.Markup.button.callback("🏠 User izlashga qaytish", "returntosearch"),
+                                ],
+                            ])));
+                        }
+                        else {
+                            await ctx.reply("Bunday raqamli user topilmadi", Object.assign({ parse_mode: "HTML" }, telegraf_1.Markup.keyboard([
+                                "🏠 Bosh menyu",
+                                "🙍‍♂️ Mijozlarni izlashda davom etish",
+                            ])
+                                .oneTime()
+                                .resize()));
+                        }
+                    }
+                }
+                else if (admin.last_state == "sendmsguser") {
+                    const admin = await this.adminRepository.findOne({
+                        where: {
+                            admin_id: `${ctx.from.id}`,
+                        },
+                    });
+                    console.log(admin.target_user_id);
+                    if ("text" in ctx.message) {
+                        await ctx.telegram.sendMessage(admin.target_user_id, ctx.message.text);
+                        await this.adminRepository.findOne({
+                            where: {
+                                last_state: "finish",
+                            },
+                        });
+                        await (0, returnMenuForUser_1.returnMenuForUser)(ctx, "<b> Xabaringiz userga yuborildi! </b>");
+                    }
+                }
+            }
         }
     }
     async onContact(ctx) {
@@ -334,6 +693,22 @@ let AppService = class AppService {
         });
         if ("contact" in ctx.message) {
             if (user) {
+                if (user.last_state === "contact_mijoz") {
+                    user.phone_number = String(ctx.message.contact.phone_number);
+                    user.last_state = "main_mijoz";
+                    await user.save();
+                    await (0, main_mijoz_1.mainMijoz)(ctx);
+                }
+                else if (user.last_state === "change_mijoz_phone") {
+                    user.phone_number = String(ctx.message.contact.phone_number);
+                    user.last_state = "change_mijoz";
+                    await user.save();
+                    ctx.reply("Telefon raqam muvaffaqiyatli o'zgardi ✅, O'zgartirmoqchi bo'lgan ma'lumotingizni tanlang", Object.assign({ parse_mode: "HTML" }, telegraf_1.Markup.keyboard([
+                        ["Ism, Familiya ✏️"],
+                        ["Telefon raqam 📞"],
+                        ["orqaga ↩️"],
+                    ]).resize()));
+                }
             }
             else if (master) {
                 if (master.last_state === "phone_number") {
@@ -374,6 +749,7 @@ let AppService = class AppService {
         }
     }
     async onLocation(ctx) {
+        var _a, _b;
         const user = await this.userRepository.findOne({
             where: { user_id: `${ctx.from.id}` },
         });
@@ -382,6 +758,37 @@ let AppService = class AppService {
         });
         if ("location" in ctx.message) {
             if (user) {
+                if (user.last_state === "searchLocationService") {
+                    const lon = ctx.message.location.longitude;
+                    const lat = ctx.message.location.latitude;
+                    user.location = `${lat},${lon}`;
+                    const results = await this.masterRepository.findAll({
+                        where: {
+                            service_id: +user.service_id,
+                        },
+                    });
+                    const distances = [];
+                    for (const result of results) {
+                        let to_lat = (_a = result.location) === null || _a === void 0 ? void 0 : _a.split(",")[0];
+                        let to_lon = (_b = result.location) === null || _b === void 0 ? void 0 : _b.split(",")[1];
+                        if (to_lat && to_lon) {
+                            const distance = await (0, distance_1.getDistance)(lat, lon, to_lat, to_lon);
+                            distances.push({
+                                id: result.master_id,
+                                distance: distance,
+                                name: result.name,
+                            });
+                        }
+                    }
+                    distances.sort((a, b) => a.distance - b.distance);
+                    user.distance = JSON.stringify(distances);
+                    user.message_id = String(ctx.message.message_id + 2);
+                    user.changed("distance", true);
+                    user.paginationCount = 0;
+                    await user.save();
+                    await ctx.reply("Lokatsiya bo'yicha:", Object.assign({ parse_mode: "HTML" }, telegraf_1.Markup.keyboard([["orqaga ↩️"]]).resize()));
+                    await (0, searchMasterLocation_1.show_mijoz_locationsFirst)(ctx, user);
+                }
             }
             else if (master) {
                 if (master.last_state === "location") {
@@ -392,6 +799,25 @@ let AppService = class AppService {
                     await ctx.reply("Ish boshlash vaqtingizni kiriting. Namuna( 07:00 )");
                 }
             }
+        }
+    }
+    async onLocationMijoz(ctx) {
+        try {
+            let user = await this.userRepository.findOne({
+                where: { user_id: String(ctx.from.id) },
+            });
+            if (!user) {
+                return (0, boshMenu_1.boshMenu)(ctx);
+            }
+            if (user.last_state === "select_service") {
+                user.searchType = "location";
+                user.last_state = "searchLocationService";
+                await user.save();
+                await (0, searchMasterLocation_1.search_mijoz_location)(ctx);
+            }
+        }
+        catch (error) {
+            console.log(error);
         }
     }
     async requestToAdmin(ctx) {
@@ -1147,6 +1573,607 @@ let AppService = class AppService {
             await ctx.telegram.editMessageText(master.master_id, +master.message_id, null, `Siz tanlagan kunning umumiy vaqtlari ro'yhati\n${timeNow}:${new Date().getSeconds()} holatiga ko'ra`, Object.assign({ parse_mode: "HTML" }, telegraf_1.Markup.inlineKeyboard([...mainKeyboard])));
         }
     }
+    async complectMasters(ctx) {
+        const services = await this.serviceRepository.findAll();
+        let serviceNames = [];
+        for (let i = 0; i < services.length; i++) {
+            serviceNames.push([
+                telegraf_1.Markup.button.callback(services[i].name, `fields=${services[i].id}`),
+            ]);
+        }
+        serviceNames.push([telegraf_1.Markup.button.callback("🏠 Bosh menyu", "mainmenu")]);
+        serviceNames.push([
+            telegraf_1.Markup.button.callback("✍️ Hamma userlarga xabar yuborish", "sSmsAllUser"),
+        ]);
+        await ctx.reply("Ustalarning yo'nalishlaridan birini tanlang", Object.assign({}, telegraf_1.Markup.inlineKeyboard([...serviceNames])));
+    }
+    async onMijoz(ctx) {
+        try {
+            const mijoz_id = String(ctx.from.id);
+            let user = await this.userRepository.findOne({
+                where: { user_id: mijoz_id },
+            });
+            if (!user) {
+                user = await this.userRepository.create({
+                    user_id: mijoz_id,
+                    last_name: ctx.from.last_name,
+                    first_name: ctx.from.first_name,
+                    status: true,
+                    last_state: "register_mijoz",
+                    username: ctx.from.username,
+                });
+                await (0, mijoz_ism_1.mijoz_ism)(ctx);
+            }
+            else if (!(user === null || user === void 0 ? void 0 : user.real_name)) {
+                await (0, mijoz_ism_1.mijoz_ism)(ctx);
+            }
+            else if (!(user === null || user === void 0 ? void 0 : user.phone_number)) {
+                user.last_state = "contact_mijoz";
+                await user.save();
+                await (0, mijoz_phone_1.mijoz_phone)(ctx);
+            }
+            else {
+                user.last_state = "main_mijoz";
+                await user.save();
+                await (0, main_mijoz_1.mainMijoz)(ctx);
+            }
+        }
+        catch (error) {
+            console.log(error);
+        }
+    }
+    async onPaginationName(ctx) {
+        try {
+            let user = await this.userRepository.findOne({
+                where: { user_id: String(ctx.from.id) },
+            });
+            if (!user) {
+                return (0, boshMenu_1.boshMenu)(ctx);
+            }
+            user.paginationCount = +ctx.match["input"].split("-")[1];
+            await user.save();
+            await (0, searchMasterName_1.searchMasterName)(ctx, user, this.masterRepository);
+        }
+        catch (error) {
+            console.log(error);
+        }
+    }
+    async onPaginationRating(ctx) {
+        try {
+            let user = await this.userRepository.findOne({
+                where: { user_id: String(ctx.from.id) },
+            });
+            if (!user) {
+                return (0, boshMenu_1.boshMenu)(ctx);
+            }
+            user.paginationCount = +ctx.match["input"].split("-")[1];
+            await user.save();
+            await (0, searchRatingMaster_1.searchMasterRating)(ctx, user, this.masterRepository);
+        }
+        catch (error) {
+            console.log(error);
+        }
+    }
+    async onPaginationLocation(ctx) {
+        try {
+            let user = await this.userRepository.findOne({
+                where: { user_id: String(ctx.from.id) },
+            });
+            if (!user) {
+                return (0, boshMenu_1.boshMenu)(ctx);
+            }
+            user.paginationCount = +ctx.match["input"].split("-")[1];
+            await user.save();
+            await (0, searchMasterLocation_1.show_mijoz_location)(ctx, user);
+        }
+        catch (error) {
+            console.log(error);
+        }
+    }
+    async onPaginationTime(ctx) {
+        try {
+            let user = await this.userRepository.findOne({
+                where: { user_id: String(ctx.from.id) },
+            });
+            if (!user) {
+                return (0, boshMenu_1.boshMenu)(ctx);
+            }
+            user.paginationCount = +ctx.match["input"].split("-")[1];
+            await user.save();
+            await (0, timePagination_1.tima_pagination)(ctx, user);
+        }
+        catch (error) {
+            console.log(error);
+        }
+    }
+    async changeMijozData(ctx) {
+        try {
+            let user = await this.userRepository.findOne({
+                where: { user_id: String(ctx.from.id) },
+            });
+            if (!user) {
+                return (0, boshMenu_1.boshMenu)(ctx);
+            }
+            if (user.last_state == "main_mijoz") {
+                user.last_state = "change_mijoz";
+                await user.save();
+                await (0, changeMijozData_1.change_mijoz_data)(ctx);
+            }
+        }
+        catch (error) {
+            console.log(error);
+        }
+    }
+    async changeName(ctx) {
+        try {
+            let user = await this.userRepository.findOne({
+                where: { user_id: String(ctx.from.id) },
+            });
+            if (!user) {
+                return (0, boshMenu_1.boshMenu)(ctx);
+            }
+            if (user.last_state == "change_mijoz") {
+                user.last_state = "change_mijoz_name";
+                await user.save();
+                await (0, mijoz_ism_1.change_mijoz_ism)(ctx);
+            }
+        }
+        catch (error) {
+            console.log(error);
+        }
+    }
+    async changeNumber(ctx) {
+        try {
+            let user = await this.userRepository.findOne({
+                where: { user_id: String(ctx.from.id) },
+            });
+            if (!user) {
+                return (0, boshMenu_1.boshMenu)(ctx);
+            }
+            if (user.last_state == "change_mijoz") {
+                user.last_state = "change_mijoz_phone";
+                await user.save();
+                await (0, mijoz_phone_1.change_mijoz_phone)(ctx);
+            }
+        }
+        catch (error) {
+            console.log(error);
+        }
+    }
+    async orqaga(ctx) {
+        try {
+            let user = await this.userRepository.findOne({
+                where: { user_id: String(ctx.from.id) },
+            });
+            if (!user) {
+                return (0, boshMenu_1.boshMenu)(ctx);
+            }
+            if (user.last_state == "change_mijoz") {
+                user.last_state = "main_mijoz";
+                await user.save();
+                await (0, main_mijoz_1.mainMijoz)(ctx);
+            }
+            else if (user.last_state == "change_mijoz_name" ||
+                user.last_state == "change_mijoz_phone") {
+                user.last_state = "change_mijoz";
+                await user.save();
+                await (0, changeMijozData_1.change_mijoz_data)(ctx);
+            }
+            else if (user.last_state == "select_service") {
+                user.last_state = "main_mijoz";
+                await user.save();
+                await (0, main_mijoz_1.mainMijoz)(ctx);
+            }
+            else if (user.last_state == "searchNameService" ||
+                user.last_state == "searchRatingService" ||
+                user.last_state == "searchLocationService") {
+                user.last_state = "select_service";
+                await user.save();
+                await (0, changeMijozData_1.select_service_data)(ctx);
+            }
+            else if (user.last_state == "select_master") {
+                await ctx.telegram.deleteMessage(+user.user_id, +user.message_id);
+                if (user.searchType == "name") {
+                    user.last_state = "searchNameService";
+                    const newCtx = await (0, searchMasterName_1.searchMasterNameFirst)(ctx, user, this.masterRepository);
+                    user.message_id = String(newCtx.message_id);
+                    await user.save();
+                }
+                else if (user.searchType == "location") {
+                    user.last_state = "searchLocationService";
+                    const newCtx = await (0, searchMasterLocation_1.show_mijoz_locationsFirst)(ctx, user);
+                    user.message_id = String(newCtx.message_id);
+                    await user.save();
+                }
+                else if (user.searchType == "rating") {
+                    user.last_state = "searchRatingService";
+                    const newCtx = await (0, searchRatingMaster_1.searchMasterRatingFirst)(ctx, user, this.masterRepository);
+                    user.message_id = String(newCtx.message_id);
+                    await user.save();
+                }
+            }
+            else if (user.last_state == "ranking") {
+                const master = await this.masterRepository.findOne({
+                    where: { master_id: user.selectMasterId },
+                });
+                if (!master) {
+                    user.last_state = "main_mijoz";
+                    await user.save();
+                    return await (0, main_mijoz_1.mainMijoz)(ctx);
+                }
+                user.last_state = "select_master";
+                await user.save();
+                await (0, selectMaster_1.select_master)(ctx, master);
+            }
+            else if (user.last_state == "getSevenDays") {
+                const master = await this.masterRepository.findOne({
+                    where: { master_id: user.selectMasterId },
+                });
+                if (!master) {
+                    user.last_state = "main_mijoz";
+                    await user.save();
+                    return await (0, main_mijoz_1.mainMijoz)(ctx);
+                }
+                user.last_state = "select_master";
+                await user.save();
+                await (0, selectMaster_1.select_master)(ctx, master);
+            }
+            else if (user.last_state == "getTimes") {
+                user.last_state = "getSevenDays";
+                user.paginationCount = 0;
+                await user.save();
+                await (0, getSevenDays_1.getSevenDeys)(ctx);
+            }
+        }
+        catch (error) {
+            console.log(error);
+        }
+    }
+    async onServices(ctx) {
+        try {
+            let user = await this.userRepository.findOne({
+                where: { user_id: String(ctx.from.id) },
+            });
+            if (!user) {
+                return (0, boshMenu_1.boshMenu)(ctx);
+            }
+            if (user.last_state == "main_mijoz") {
+                const services = await this.serviceRepository.findAll();
+                if (services.length) {
+                    const service = [];
+                    services.forEach((item) => {
+                        service.push([
+                            { text: item.name, callback_data: `service-${item.id}` },
+                        ]);
+                    });
+                    await (0, services_1.services_mijoz)(ctx, service);
+                }
+            }
+        }
+        catch (error) {
+            console.log(error);
+        }
+    }
+    async selectServices(ctx) {
+        try {
+            let user = await this.userRepository.findOne({
+                where: { user_id: String(ctx.from.id) },
+            });
+            if (!user) {
+                return (0, boshMenu_1.boshMenu)(ctx);
+            }
+            user.last_state = "select_service";
+            user.service_id = +ctx.match["input"].split("-")[1];
+            user.save();
+            await ctx.reply(`Quyidagi kriteriyalar bo'yicha tanlang: `, Object.assign({ parse_mode: "HTML" }, telegraf_1.Markup.keyboard([
+                ["ISMI 📝"],
+                ["REYTING ⭐️"],
+                ["Lokatsiya 📍"],
+                ["orqaga ↩️"],
+            ]).resize()));
+        }
+        catch (error) {
+            console.log(error);
+        }
+    }
+    async serachNameMijoz(ctx) {
+        try {
+            let user = await this.userRepository.findOne({
+                where: { user_id: String(ctx.from.id) },
+            });
+            if (!user) {
+                return (0, boshMenu_1.boshMenu)(ctx);
+            }
+            if (user.last_state === "select_service") {
+                user.searchType = "name";
+                user.last_state = "searchNameService";
+                await user.save();
+                await (0, mijoz_ism_1.search_mijoz_ism)(ctx);
+            }
+        }
+        catch (error) {
+            console.log(error);
+        }
+    }
+    async serachRatingMijoz(ctx) {
+        try {
+            let user = await this.userRepository.findOne({
+                where: { user_id: String(ctx.from.id) },
+            });
+            if (!user) {
+                return (0, boshMenu_1.boshMenu)(ctx);
+            }
+            if (user.last_state === "select_service") {
+                user.searchType = "rating";
+                user.last_state = "searchRatingService";
+                await ctx.reply("Reyting bo'yicha:", Object.assign({ parse_mode: "HTML" }, telegraf_1.Markup.keyboard([["orqaga ↩️"]]).resize()));
+                user.paginationCount = 0;
+                user.message_id = String(ctx.message.message_id + 2);
+                await user.save();
+                await (0, searchRatingMaster_1.searchMasterRatingFirst)(ctx, user, this.masterRepository);
+            }
+        }
+        catch (error) {
+            console.log(error);
+        }
+    }
+    async selectMaster(ctx) {
+        try {
+            let user = await this.userRepository.findOne({
+                where: { user_id: String(ctx.from.id) },
+            });
+            if (!user) {
+                return (0, boshMenu_1.boshMenu)(ctx);
+            }
+            if (user.last_state == "searchNameService" ||
+                user.last_state == "searchRatingService" ||
+                user.last_state == "searchLocationService") {
+                const master = await this.masterRepository.findOne({
+                    where: { master_id: ctx.match["input"].split("-")[1] },
+                });
+                if (!master) {
+                    user.last_state = "main_mijoz";
+                    await user.save();
+                    return await (0, main_mijoz_1.mainMijoz)(ctx);
+                }
+                user.last_state = "select_master";
+                user.selectMasterId = ctx.match["input"].split("-")[1];
+                await ctx.telegram.deleteMessage(+user.user_id, +user.message_id);
+                const newCtx = await (0, selectMaster_1.select_master)(ctx, master);
+                user.message_id = String(newCtx.message_id);
+                await user.save();
+            }
+        }
+        catch (error) {
+            console.log(error);
+        }
+    }
+    async showLocation(ctx) {
+        try {
+            let user = await this.userRepository.findOne({
+                where: { user_id: String(ctx.from.id) },
+            });
+            if (!user) {
+                return (0, boshMenu_1.boshMenu)(ctx);
+            }
+            if (user.last_state == "select_master") {
+                const lat = ctx.match["input"].split("-")[1].split(",")[0];
+                const lon = ctx.match["input"].split("-")[1].split(",")[1];
+                await ctx.replyWithLocation(+lat, +lon, +user.user_id);
+            }
+        }
+        catch (error) {
+            console.log(error);
+        }
+    }
+    async toRankings(ctx) {
+        try {
+            let user = await this.userRepository.findOne({
+                where: { user_id: String(ctx.from.id) },
+            });
+            if (!user) {
+                return (0, boshMenu_1.boshMenu)(ctx);
+            }
+            if (user.last_state == "select_master") {
+                const ranking = await this.rankingRepository.findOne({
+                    where: { user_id: user.user_id, master_id: user.selectMasterId },
+                });
+                user.last_state = "ranking";
+                await user.save();
+                await (0, toRanking_1.ranking_master)(ctx, ranking === null || ranking === void 0 ? void 0 : ranking.rank);
+            }
+        }
+        catch (error) {
+            console.log(error);
+        }
+    }
+    async getRank(ctx) {
+        try {
+            let user = await this.userRepository.findOne({
+                where: { user_id: String(ctx.from.id) },
+            });
+            if (!user) {
+                return (0, boshMenu_1.boshMenu)(ctx);
+            }
+            if (user.last_state == "ranking") {
+                const rank = +ctx.match["input"].split("-")[1];
+                let ranking = await this.rankingRepository.findOne({
+                    where: { user_id: user.user_id, master_id: user.selectMasterId },
+                });
+                if (!ranking) {
+                    ranking = await this.rankingRepository.create({
+                        user_id: user.user_id,
+                        master_id: user.selectMasterId,
+                        rank,
+                    });
+                }
+                else {
+                    await this.rankingRepository.update({ rank }, {
+                        where: {
+                            user_id: user.user_id,
+                            master_id: user.selectMasterId,
+                        },
+                    });
+                }
+                const ranks = await this.rankingRepository.findAll({
+                    where: { master_id: user.selectMasterId },
+                });
+                const total_renk = ranks.reduce((a, b) => a + b.rank, 0) / ranks.length;
+                const master = await this.masterRepository.findOne({
+                    where: { master_id: user.selectMasterId },
+                });
+                if (!master) {
+                    user.last_state = "main_mijoz";
+                    await user.save();
+                    return await (0, main_mijoz_1.mainMijoz)(ctx);
+                }
+                master.rating = total_renk;
+                await master.save();
+                user.last_state = "select_master";
+                await user.save();
+                await (0, selectMaster_1.select_master)(ctx, master);
+            }
+        }
+        catch (error) {
+            console.log(error);
+        }
+    }
+    async getDays(ctx) {
+        try {
+            let user = await this.userRepository.findOne({
+                where: { user_id: String(ctx.from.id) },
+            });
+            if (!user) {
+                return (0, boshMenu_1.boshMenu)(ctx);
+            }
+            if (user.last_state == "select_master") {
+                user.last_state = "getSevenDays";
+                await user.save();
+                await (0, getSevenDays_1.getSevenDeys)(ctx);
+            }
+        }
+        catch (error) {
+            console.log(error);
+        }
+    }
+    async getTimes(ctx) {
+        try {
+            let user = await this.userRepository.findOne({
+                where: { user_id: String(ctx.from.id) },
+            });
+            if (!user) {
+                return (0, boshMenu_1.boshMenu)(ctx);
+            }
+            if (user.last_state == "getSevenDays") {
+                const master = await this.masterRepository.findOne({
+                    where: { master_id: user.selectMasterId },
+                });
+                if (!master) {
+                    user.last_state = "main_mijoz";
+                    user.paginationCount = 0;
+                    await user.save();
+                    return await (0, main_mijoz_1.mainMijoz)(ctx);
+                }
+                await (0, getTime_1.get_times)(ctx, user, this.orderRepository, master);
+                const ctxNew = await (0, timePagination_1.tima_paginationsFirst)(ctx, user);
+                user.paginationCount = 0;
+                await user.save();
+                user.select_day = ctx.match["input"].split("-")[1];
+                user.last_state = "getTimes";
+                user.message_id = ctxNew.message_id;
+                await user.save();
+            }
+        }
+        catch (error) {
+            console.log(error);
+        }
+    }
+    async tanlanganHizmatlar(ctx) {
+        try {
+            let user = await this.userRepository.findOne({
+                where: { user_id: String(ctx.from.id) },
+            });
+            if (!user) {
+                return (0, boshMenu_1.boshMenu)(ctx);
+            }
+            let orders = await this.orderRepository.findAll({
+                where: { user_id: user.user_id },
+            });
+            if (orders.length) {
+                orders.forEach(async (order) => {
+                    const master = await this.masterRepository.findOne({
+                        where: { master_id: order.master_id },
+                    });
+                    await (0, tanlanganHizmatlar_1.tanlangan_hizmatlar)(ctx, order, master);
+                });
+            }
+            else {
+                ctx.reply("Hali hech qaysi hizmatga ro'yhatdan o'tmagansiz");
+            }
+        }
+        catch (error) {
+            console.log(error);
+        }
+    }
+    async sendSmsMaster(ctx) {
+        try {
+            let user = await this.userRepository.findOne({
+                where: { user_id: String(ctx.from.id) },
+            });
+            if (!user) {
+                return (0, boshMenu_1.boshMenu)(ctx);
+            }
+            if (user.last_state == "getTimes") {
+                const master = await this.masterRepository.findOne({
+                    where: { master_id: user.selectMasterId },
+                });
+                if (!master) {
+                    user.last_state = "main_mijoz";
+                    user.paginationCount = 0;
+                    await user.save();
+                    return await (0, main_mijoz_1.mainMijoz)(ctx);
+                }
+                const order = await this.orderRepository.create({
+                    user_id: user.user_id,
+                    master_id: user.selectMasterId,
+                    date: user.select_day,
+                    time: ctx.match["input"].split("-")[1],
+                    service_id: master.service_id,
+                });
+                await (0, sendMasterSms_1.sendSMSMaster)(ctx, user, order);
+            }
+        }
+        catch (error) {
+            console.log(error);
+        }
+    }
+    async confirmMessage(ctx) {
+        try {
+            let user = await this.userRepository.findOne({
+                where: { user_id: String(ctx.from.id) },
+            });
+            if (!user) {
+                return (0, boshMenu_1.boshMenu)(ctx);
+            }
+            const order = await this.orderRepository.findOne({
+                where: { id: +ctx.match["input"].split("-")[1] },
+            });
+            if (order) {
+                if (ctx.match["input"].split("-")[0] == "xa") {
+                    ctx.telegram.sendMessage(+order.user_id, `${order.date}.${order.time}-vaqtiga yuborgan so'rovingiz qabul qilindi ✅`);
+                    ctx.telegram.sendMessage(+order.master_id, `${order.date}.${order.time}-vaqtiga mijozni qabul qildingiz qabul qilindi ✅`);
+                }
+                else {
+                    ctx.telegram.sendMessage(+order.user_id, `${order.date}.${order.time}-vaqtiga yuborgan so'rovingiz qabul qilinmadi ❌`);
+                    ctx.telegram.sendMessage(+order.master_id, `${order.date}.${order.time}-vaqtiga mijozni qabul qilmadingiz ❌`);
+                    await this.orderRepository.destroy({ where: { id: order.id } });
+                }
+            }
+        }
+        catch (error) {
+            console.log(error);
+        }
+    }
 };
 AppService = __decorate([
     (0, common_1.Injectable)(),
@@ -1154,8 +2181,10 @@ AppService = __decorate([
     __param(1, (0, sequelize_1.InjectModel)(service_type_model_1.Service_type)),
     __param(2, (0, sequelize_1.InjectModel)(master_model_1.Master)),
     __param(3, (0, sequelize_1.InjectModel)(order_model_1.Order)),
-    __param(4, (0, nestjs_telegraf_1.InjectBot)(app_constants_1.MyBotName)),
-    __metadata("design:paramtypes", [Object, Object, Object, Object, telegraf_1.Telegraf])
+    __param(4, (0, sequelize_1.InjectModel)(admin_model_1.Admin)),
+    __param(5, (0, sequelize_1.InjectModel)(ranking_model_1.Ranking)),
+    __param(6, (0, nestjs_telegraf_1.InjectBot)(app_constants_1.MyBotName)),
+    __metadata("design:paramtypes", [Object, Object, Object, Object, Object, Object, telegraf_1.Telegraf])
 ], AppService);
 exports.AppService = AppService;
 //# sourceMappingURL=app.service.js.map

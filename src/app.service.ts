@@ -9,7 +9,50 @@ import { Op } from "sequelize";
 import { Service_type } from "./models/service_type.model";
 import { Master } from "./models/master.model";
 import { Order } from "./models/order.model";
-import { services } from "./helpers/services";
+import { Admin } from "./models/admin.model";
+import { getterServices } from "./helpers/getServices";
+import { returnMenuForUser } from "./helpers/returnMenuForUser";
+import { AdminService } from "./admin.service";
+import { boshMenu } from "./helpers/boshMenu";
+import {
+  change_mijoz_ism,
+  mijoz_ism,
+  search_mijoz_ism,
+} from "./helpers/mijoz_ism";
+import { change_mijoz_phone, mijoz_phone } from "./helpers/mijoz_phone";
+import { mainMijoz } from "./helpers/main_mijoz";
+import {
+  change_mijoz_data,
+  select_service_data,
+} from "./helpers/changeMijozData";
+
+import {
+  searchMasterName,
+  searchMasterNameFirst,
+} from "./helpers/searchMasterName";
+import {
+  searchMasterRating,
+  searchMasterRatingFirst,
+} from "./helpers/searchRatingMaster";
+import {
+  search_mijoz_location,
+  show_mijoz_location,
+  show_mijoz_locationsFirst,
+} from "./helpers/searchMasterLocation";
+import { getDistance } from "./helpers/distance";
+import { select_master } from "./helpers/selectMaster";
+import { Ranking } from "./models/ranking.model";
+import { ranking_master } from "./helpers/toRanking";
+import { getSevenDeys } from "./helpers/getSevenDays";
+import { get_times } from "./helpers/getTime";
+import {
+  tima_pagination,
+  tima_paginationsFirst,
+} from "./helpers/timePagination";
+import { tanlangan_hizmatlar } from "./helpers/tanlanganHizmatlar";
+import { sendSMSMaster } from "./helpers/sendMasterSms";
+import { services_mijoz } from "./helpers/services";
+
 
 @Injectable()
 export class AppService {
@@ -18,42 +61,49 @@ export class AppService {
     @InjectModel(Service_type) private serviceRepository: typeof Service_type,
     @InjectModel(Master) private masterRepository: typeof Master,
     @InjectModel(Order) private orderRepository: typeof Order,
+    @InjectModel(Admin) private adminRepository: typeof Admin,
+    @InjectModel(Ranking) private rankingRepository: typeof Ranking,
     @InjectBot(MyBotName) private readonly bot: Telegraf<Context>
   ) {}
 
+  // async onStart(ctx: Context) {
+
+  //   const user = await this.userRepository.findOne({
+  //     where: { user_id: `${ctx.from.id}` },
+  //   });
+  //   const master = await this.masterRepository.findOne({
+  //     where: { master_id: `${ctx.from.id}` },
+  //   });
+  //   if (user) {
+  //   } else if (master) {
+  //     if (master.status && master.last_state === "finish") {
+  //       await ctx.reply("O'zingizga kerakli bo'lgan bo'limni tanlang", {
+  //         parse_mode: "HTML",
+  //         ...Markup.keyboard([
+  //           ["👥 Mijozlar", "🕔 Vaqt", "📊 Reyting"],
+  //           ["🔄 Ma'lumotlarni o'zgartirish"],
+  //         ])
+  //           .oneTime()
+  //           .resize(),
+  //       });
+  //     }
+  //   } else {
+  //     await ctx.reply(
+  //       "Assalomu alaykum. Hush kelibsiz, botdan birinchi martda foydalanayotganingiz uchun ro'yhatdan o'tishingiz lozim",
+  //       {
+  //         parse_mode: "HTML",
+  //         ...Markup.keyboard([["👤 Ro'yhatdan o'tish"]])
+  //           .oneTime()
+  //           .resize(),
+  //       }
+  //     );
+  //   }
+  // }
+
   async onStart(ctx: Context) {
-    console.log("11111");
-    const user = await this.userRepository.findOne({
-      where: { user_id: `${ctx.from.id}` },
-    });
-    const master = await this.masterRepository.findOne({
-      where: { master_id: `${ctx.from.id}` },
-    });
-    if (user) {
-    } else if (master) {
-      if (master.status && master.last_state === "finish") {
-        await ctx.reply("O'zingizga kerakli bo'lgan bo'limni tanlang", {
-          parse_mode: "HTML",
-          ...Markup.keyboard([
-            ["👥 Mijozlar", "🕔 Vaqt", "📊 Reyting"],
-            ["🔄 Ma'lumotlarni o'zgartirish"],
-          ])
-            .oneTime()
-            .resize(),
-        });
-      }
-    } else {
-      await ctx.reply(
-        "Assalomu alaykum. Hush kelibsiz, botdan birinchi martda foydalanayotganingiz uchun ro'yhatdan o'tishingiz lozim",
-        {
-          parse_mode: "HTML",
-          ...Markup.keyboard([["👤 Ro'yhatdan o'tish"]])
-            .oneTime()
-            .resize(),
-        }
-      );
-    }
+    return await boshMenu(ctx);
   }
+
 
   async registration(ctx: Context) {
     const user = await this.userRepository.findOne({
@@ -138,8 +188,40 @@ export class AppService {
     const master = await this.masterRepository.findOne({
       where: { master_id: `${ctx.from.id}` },
     });
+    const admin = await this.adminRepository.findOne({
+      where: {
+        admin_id: String(ctx.from.id),
+      },
+    });
     if ("text" in ctx.message) {
       if (user) {
+        if (user.last_state === "register_mijoz") {
+          user.real_name = ctx.message.text;
+          user.last_state = "contact_mijoz";
+          await user.save();
+          mijoz_phone(ctx);
+        } else if (user.last_state === "change_mijoz_name") {
+          user.real_name = ctx.message.text;
+          user.last_state = "change_mijoz";
+          await user.save();
+          ctx.reply(
+            "Ism muvaffaqiyatli o'zgardi ✅, O'zgartirmoqchi bo'lgan ma'lumotingizni tanlang",
+            {
+              parse_mode: "HTML",
+              ...Markup.keyboard([
+                ["Ism, Familiya ✏️"],
+                ["Telefon raqam 📞"],
+                ["orqaga ↩️"],
+              ]).resize(),
+            }
+          );
+        } else if (user.last_state === "searchNameService") {
+          const searchName = ctx.message.text;
+          user.paginationCount = 0;
+          user.searchName = searchName;
+          await user.save();
+          await searchMasterNameFirst(ctx, user, this.masterRepository);
+        }
       } else if (master) {
         if (master.last_state === "name") {
           await master.update({
@@ -326,7 +408,9 @@ export class AppService {
               work_start_time: ctx.message.text,
               last_state: "finish",
             });
-            await ctx.reply(`Ochilish vaqti ${ctx.message.text} ga o'zgartirildi`);
+            await ctx.reply(
+              `Ochilish vaqti ${ctx.message.text} ga o'zgartirildi`
+            );
           } else {
             await ctx.reply("Vaqtni ko'rsatilgan namunadek kiriting");
           }
@@ -344,7 +428,9 @@ export class AppService {
               work_end_time: date,
               last_state: "finish",
             });
-            await ctx.reply(`Yopilish vaqti ${ctx.message.text} ga o'zgartirildi`);
+            await ctx.reply(
+              `Yopilish vaqti ${ctx.message.text} ga o'zgartirildi`
+            );
           } else {
             await ctx.reply("Vaqtni ko'rsatilgan namunadek kiriting");
           }
@@ -358,9 +444,503 @@ export class AppService {
               time_per_work: ctx.message.text,
               last_state: "finish",
             });
-            await ctx.reply(`Bir mijoz uchun sarflanadigan vaqt ${ctx.message.text} minut ga o'zgartirildi`);
+            await ctx.reply(
+              `Bir mijoz uchun sarflanadigan vaqt ${ctx.message.text} minut ga o'zgartirildi`
+            );
           } else {
             await ctx.reply("Ko'rsatilgan namunadek kiriting");
+          }
+        }
+      } else if (admin) {
+        if (admin.last_state == "addnewService") {
+          if ("text" in ctx.message) {
+            const check = await this.serviceRepository.findOne({
+              where: {
+                name: `${ctx.message.text}`,
+              },
+            });
+            const services = await this.serviceRepository.findAll();
+            if (check) {
+              await getterServices(services, ctx);
+              await ctx.reply("<b>Bunday nomli xizmat mavjud !</b>", {
+                parse_mode: "HTML",
+                ...Markup.keyboard([
+                  [
+                    "♻️ Yana qo'shish",
+                    "🏠 Bosh menyu",
+                    "🧰 Xizmatlar bo'limiga qaytish",
+                  ],
+                ])
+                  .oneTime()
+                  .resize(),
+              });
+            } else {
+              await this.serviceRepository.create({
+                name: String(ctx.message.text),
+              });
+              const nServices = await this.serviceRepository.findAll();
+              admin.last_state = "finish";
+              await admin.save();
+              await getterServices(nServices, ctx);
+              await ctx.reply("<b>Muvaffaqiyatli qoshildi !</b>", {
+                parse_mode: "HTML",
+                ...Markup.keyboard([
+                  [
+                    "♻️ Yana qo'shish",
+                    "🏠 Bosh menyu",
+                    "🙍‍♂️ Mijozlar bo'limiga qaytish",
+                  ],
+                ])
+                  .oneTime()
+                  .resize(),
+              });
+            }
+          }
+        } else if (admin.last_state === "searchbynamemaster") {
+          if ("text" in ctx.message) {
+            const data = await this.masterRepository.findOne({
+              where: {
+                name: `${ctx.message.text}`,
+                service_id: admin.search_master_state,
+                status: true,
+              },
+            });
+            if (data) {
+              await this.adminRepository.update(
+                {
+                  last_state: "finish",
+                },
+                {
+                  where: {
+                    admin_id: `${ctx.from.id}`,
+                  },
+                }
+              );
+              await ctx.reply(
+                `Ismi: <b>${data.name}</b>\naddress:<b>${data.address}</b>\nrating:<b>${data.rating}</b>\ntelefon raqami:<b>${data.phone_number}</b>\nxizmat narxi:<b>${data.price}</b>`,
+                {
+                  parse_mode: "HTML",
+                  ...Markup.inlineKeyboard([
+                    [
+                      Markup.button.callback(
+                        "❌ Ustani o'chirish",
+                        `delmaster=${data.master_id}`
+                      ),
+                    ],
+                    [
+                      Markup.button.callback(
+                        "✔️ Ustani aktiv emas qilib qo'yish",
+                        `deactivemas=${data.master_id}`
+                      ),
+                    ],
+                    [
+                      Markup.button.callback(
+                        "📊 Statistikani ko'rish",
+                        `showstats=${data.master_id}`
+                      ),
+                    ],
+                    [
+                      Markup.button.callback(
+                        "📝 Ustaga reklama yoki xabar yuborish",
+                        `sendmess=${data.master_id}`
+                      ),
+                    ],
+                    [Markup.button.callback("🏠 Bosh menyu", "mainmenu")],
+                  ]),
+                }
+              );
+            } else {
+              admin.search_master_state = 0;
+              admin.last_state = "finish";
+              await admin.save();
+              await ctx.replyWithHTML(
+                `<b>Ushbu yo'nalishda bunday nomli usta yo'q</b>`
+              );
+              await this.complectMasters(ctx);
+            }
+          }
+        } else if (admin.last_state === "searchbynumbermaster") {
+          if ("text" in ctx.message) {
+            const data = await this.masterRepository.findOne({
+              where: {
+                phone_number: ctx.message.text,
+                service_id: admin.search_master_state,
+                status: true,
+              },
+            });
+            if (data) {
+              await ctx.reply(
+                `Ismi: <b>${data.name}</b>\naddress:<b>${data.address}</b>\nrating:<b>${data.rating}</b>\ntelefon raqami:<b>${data.phone_number}</b>\nxizmat narxi:<b>${data.price}</b>`,
+                {
+                  parse_mode: "HTML",
+                  ...Markup.inlineKeyboard([
+                    [
+                      Markup.button.callback(
+                        "❌ Ustani o'chirish",
+                        `delmaster=${data.master_id}`
+                      ),
+                    ],
+                    [
+                      Markup.button.callback(
+                        "✔️ Ustani aktiv emas qilib qo'yish",
+                        `deactivemas=${data.master_id}`
+                      ),
+                    ],
+                    [
+                      Markup.button.callback(
+                        "📊 Statistikani ko'rish",
+                        `showstats=${data.master_id}`
+                      ),
+                    ],
+                    [
+                      Markup.button.callback(
+                        "📝 Ustaga reklama yoki xabar yuborish",
+                        `sendmess=${data.master_id}`
+                      ),
+                    ],
+                    [
+                      Markup.button.callback(
+                        "✍️ Hammaga xabar yuborish",
+                        "sendAllSms"
+                      ),
+                    ],
+                    [Markup.button.callback("🏠 Bosh menyu", "mainmenu")],
+                  ]),
+                }
+              );
+            } else {
+              admin.search_master_state = 0;
+              admin.last_state = "finish";
+              await admin.save();
+              await ctx.reply(
+                `<b>Ushbu yo'nalishda bunday raqamli usta yo'q</b>`,
+                {
+                  parse_mode: "HTML",
+                  ...Markup.keyboard([
+                    "🏠 Bosh menyu",
+                    "👨‍⚕️ Usta yo'nalishlariga qaytish",
+                    "📱 Yana telefon raqami orqali izlash",
+                  ])
+                    .oneTime()
+                    .resize(),
+                }
+              );
+            }
+          }
+        } else if (admin.last_state == "sendMessage") {
+          if ("text" in ctx.message) {
+            await ctx.telegram.sendMessage(
+              admin.target_user_id,
+              `<b>Xurmatli mutahassis! Sizga admin tomonidan xabar yuborildi</b>:\n${ctx.message.text}`,
+              {
+                parse_mode: "HTML",
+              }
+            );
+            await ctx.reply("✍️ Ustaga xabaringiz yuborildi");
+            await this.complectMasters(ctx);
+          }
+        } else if (admin.last_state == "updatefield") {
+          if ("text" in ctx.message) {
+            await this.serviceRepository.update(
+              {
+                name: String(ctx.message.text),
+              },
+              {
+                where: {
+                  id: admin.target_service_type_id,
+                },
+              }
+            );
+            const service = await this.serviceRepository.findAll();
+            await getterServices(service, ctx);
+            admin.last_state = "finish";
+            await admin.save();
+            await ctx.reply(
+              "Muvvafiqatli ozgartirildi !\n Davom etish uchun quyidagi buttonlardan birini tanlang",
+              {
+                parse_mode: "HTML",
+                ...Markup.keyboard([
+                  "🔄 Yana boshqa service typeni o'zgartirish",
+                  "🏠 Bosh menyu",
+                ])
+                  .oneTime()
+                  .resize(),
+              }
+            );
+          }
+        } else if (admin.last_state == "userbyname") {
+          if ("text" in ctx.message) {
+            const oldUser = await this.userRepository.findAll({
+              where: {
+                real_name: {
+                  [Op.iLike]: `%${ctx.message.text}%`,
+                },
+              },
+              offset: 0,
+            });
+            const allUsers = await this.userRepository.findAll({
+              where: {
+                real_name: {
+                  [Op.iLike]: `%${ctx.message.text}%`,
+                },
+              },
+              limit: 1,
+              offset: 0,
+            });
+            console.log(oldUser.length);
+            if (oldUser.length == 1) {
+              await ctx.reply(
+                `Ismi:${allUsers[0].real_name}\nTelefon raqami:${allUsers[0].phone_number}`,
+                {
+                  parse_mode: "HTML",
+                  ...Markup.inlineKeyboard([
+                    [
+                      Markup.button.callback(
+                        "❌ Mijozni ban qilish",
+                        `banuser=${allUsers[0].user_id}`
+                      ),
+                    ],
+                    [
+                      Markup.button.callback(
+                        "☑️ Mijozni ban dan yechish",
+                        `debanuser=${allUsers[0].user_id}`
+                      ),
+                    ],
+                    [
+                      Markup.button.callback(
+                        "✔️ Mijozni ban yoki ban emasligini tekshirish",
+                        `isban=${allUsers[0].user_id}`
+                      ),
+                    ],
+                    [
+                      Markup.button.callback(
+                        "📊 User haqida statistika chiqarish",
+                        `statuser=${allUsers[0].user_id}`
+                      ),
+                    ],
+                    [
+                      Markup.button.callback(
+                        "✍️ Mijozga sms yuborish",
+                        `msguser=${allUsers[0].user_id}`
+                      ),
+                    ],
+                    [
+                      Markup.button.callback(
+                        "🏠 User izlashga qaytish",
+                        "returntosearch"
+                      ),
+                    ],
+                  ]),
+                }
+              );
+            } else if (oldUser.length < 1) {
+              await returnMenuForUser(ctx, "<b>Bunday nomli user yoq</b>");
+            } else {
+              const listIndicator = [];
+              if (1 > 1) {
+                listIndicator.push(
+                  Markup.button.callback("⏮ Oldingi", `prev=${0}`)
+                );
+              }
+              if (0 + 1 < oldUser.length) {
+                listIndicator.push(
+                  Markup.button.callback(
+                    "⏭ Keyingisi",
+                    `next=${ctx.message.text}=${0 + 1}`
+                  )
+                );
+              }
+              await ctx.replyWithHTML(`<b>Bunday ismli user ko'p</b>`);
+              await ctx.reply(
+                `Ismi:${allUsers[0].real_name}\nTelefon raqami:${allUsers[0].phone_number}`,
+                {
+                  parse_mode: "HTML",
+                  ...Markup.inlineKeyboard([
+                    [
+                      Markup.button.callback(
+                        "❌ Mijozni ban qilish",
+                        `banuser=${allUsers[0].user_id}`
+                      ),
+                    ],
+                    [
+                      Markup.button.callback(
+                        "☑️ Mijozni ban dan yechish",
+                        `debanuser=${allUsers[0].user_id}`
+                      ),
+                    ],
+                    [
+                      Markup.button.callback(
+                        "✔️ Mijozni ban yoki ban emasligini tekshirish",
+                        `isban=${allUsers[0].user_id}`
+                      ),
+                    ],
+                    [
+                      Markup.button.callback(
+                        "📊 User haqida statistika chiqarish",
+                        `statuser=${allUsers[0].user_id}`
+                      ),
+                    ],
+                    [
+                      Markup.button.callback(
+                        "✍️ Mijozga sms yuborish",
+                        `msguser=${allUsers[0].user_id}`
+                      ),
+                    ],
+                    [
+                      Markup.button.callback(
+                        "🏠 User izlashga qaytish",
+                        "returntosearch"
+                      ),
+                    ],
+                    listIndicator,
+                  ]),
+                }
+              );
+            }
+          }
+        } else if (admin.last_state == "sendAllMasters") {
+          const masters = await this.masterRepository.findAll();
+          await this.adminRepository.update(
+            {
+              last_state: "finish",
+            },
+            {
+              where: {
+                admin_id: `${ctx.from.id}`,
+              },
+            }
+          );
+          if ("text" in ctx.message) {
+            for (let x of masters) {
+              await ctx.telegram.sendMessage(
+                `${x.master_id}`,
+                `<b>Xurmatli mutahassis! Admin tomonidan sizga xabar yuborildi</b>:\n ${ctx.message.text}`,
+                {
+                  parse_mode: "HTML",
+                }
+              );
+            }
+            await ctx.reply("Xabaringiz jonatildi", {
+              parse_mode: "HTML",
+              ...Markup.inlineKeyboard([
+                [Markup.button.callback("🏠 Bosh menu", "mainmenu")],
+              ]),
+            });
+          }
+        } else if (admin.last_state == "sendsmstouser") {
+          const users = await this.userRepository.findAll();
+          await this.adminRepository.update(
+            {
+              last_state: "finish",
+            },
+            {
+              where: {
+                admin_id: `${ctx.from.id}`,
+              },
+            }
+          );
+          if ("text" in ctx.message) {
+            for (let x of users) {
+              await ctx.telegram.sendMessage(
+                `${x.user_id}`,
+                `<b>Xurmatli foydalanuvchi! Admin tomonidan sizga xabar yuborildi</b>:\n ${ctx.message.text}`,
+                {
+                  parse_mode: "HTML",
+                }
+              );
+            }
+            await ctx.reply("Xabaringiz jonatildi", {
+              parse_mode: "HTML",
+              ...Markup.inlineKeyboard([
+                [Markup.button.callback("🏠 Bosh menu", "mainmenu")],
+              ]),
+            });
+          }
+        } else if (admin.last_state == "userbyphone") {
+          if ("text" in ctx.message) {
+            const oneUser = await this.userRepository.findOne({
+              where: {
+                phone_number: `${ctx.message.text}`,
+              },
+            });
+            if (oneUser) {
+              await ctx.reply(
+                `<b>Ma'lumotlar</b>:\n<b>Userning ismi</b>:${oneUser.real_name}\n<b>Userning telefon raqami</b>:${oneUser.phone_number}\n`,
+                {
+                  parse_mode: "HTML",
+                  ...Markup.inlineKeyboard([
+                    [
+                      Markup.button.callback(
+                        "❌ Mijozni ban qilish",
+                        `banuser=${oneUser.user_id}`
+                      ),
+                    ],
+                    [
+                      Markup.button.callback(
+                        "☑️ Mijozni ban dan yechish",
+                        `debanuser=${oneUser.user_id}`
+                      ),
+                    ],
+                    [
+                      Markup.button.callback(
+                        "✔️ Mijozni ban yoki ban emasligini tekshirish",
+                        `isban=${oneUser.user_id}`
+                      ),
+                    ],
+                    [
+                      Markup.button.callback(
+                        "📊 User haqida statistika chiqarish",
+                        `statuser=${oneUser.user_id}`
+                      ),
+                    ],
+                    [
+                      Markup.button.callback(
+                        "✍️ Mijozga sms yuborish",
+                        `msguser=${oneUser.user_id}`
+                      ),
+                    ],
+                    [
+                      Markup.button.callback(
+                        "🏠 User izlashga qaytish",
+                        "returntosearch"
+                      ),
+                    ],
+                  ]),
+                }
+              );
+            } else {
+              await ctx.reply("Bunday raqamli user topilmadi", {
+                parse_mode: "HTML",
+                ...Markup.keyboard([
+                  "🏠 Bosh menyu",
+                  "🙍‍♂️ Mijozlarni izlashda davom etish",
+                ])
+                  .oneTime()
+                  .resize(),
+              });
+            }
+          }
+        } else if (admin.last_state == "sendmsguser") {
+          const admin = await this.adminRepository.findOne({
+            where: {
+              admin_id: `${ctx.from.id}`,
+            },
+          });
+          console.log(admin.target_user_id);
+          if ("text" in ctx.message) {
+            await ctx.telegram.sendMessage(
+              admin.target_user_id,
+              ctx.message.text
+            );
+            await this.adminRepository.findOne({
+              where: {
+                last_state: "finish",
+              },
+            });
+            await returnMenuForUser(
+              ctx,
+              "<b> Xabaringiz userga yuborildi! </b>"
+            );
           }
         }
       }
@@ -376,7 +956,27 @@ export class AppService {
     });
     if ("contact" in ctx.message) {
       if (user) {
-        //
+        if (user.last_state === "contact_mijoz") {
+          user.phone_number = String(ctx.message.contact.phone_number);
+          user.last_state = "main_mijoz";
+          await user.save();
+          await mainMijoz(ctx);
+        } else if (user.last_state === "change_mijoz_phone") {
+          user.phone_number = String(ctx.message.contact.phone_number);
+          user.last_state = "change_mijoz";
+          await user.save();
+          ctx.reply(
+            "Telefon raqam muvaffaqiyatli o'zgardi ✅, O'zgartirmoqchi bo'lgan ma'lumotingizni tanlang",
+            {
+              parse_mode: "HTML",
+              ...Markup.keyboard([
+                ["Ism, Familiya ✏️"],
+                ["Telefon raqam 📞"],
+                ["orqaga ↩️"],
+              ]).resize(),
+            }
+          );
+        }
       } else if (master) {
         if (master.last_state === "phone_number") {
           if (ctx.from.id == ctx.message.contact.user_id) {
@@ -433,7 +1033,42 @@ export class AppService {
     });
     if ("location" in ctx.message) {
       if (user) {
-        //
+        if (user.last_state === "searchLocationService") {
+          const lon = ctx.message.location.longitude;
+          const lat = ctx.message.location.latitude;
+          user.location = `${lat},${lon}`;
+          const results = await this.masterRepository.findAll({
+            where: {
+              service_id: +user.service_id,
+            },
+          });
+          const distances = [];
+          for (const result of results) {
+            let to_lat = result.location?.split(",")[0];
+            let to_lon = result.location?.split(",")[1];
+            if (to_lat && to_lon) {
+              const distance = await getDistance(lat, lon, to_lat, to_lon);
+              distances.push({
+                id: result.master_id,
+                distance: distance,
+                name: result.name,
+              });
+            }
+          }
+  
+          distances.sort((a, b) => a.distance - b.distance);
+          user.distance = JSON.stringify(distances);
+          user.message_id = String(ctx.message.message_id + 2);
+          user.changed("distance", true);
+          user.paginationCount = 0;
+          await user.save();
+          await ctx.reply("Lokatsiya bo'yicha:", {
+            parse_mode: "HTML",
+            ...Markup.keyboard([["orqaga ↩️"]]).resize(),
+          });
+  
+          await show_mijoz_locationsFirst(ctx, user);
+        }
       } else if (master) {
         if (master.last_state === "location") {
           master.update({
@@ -446,6 +1081,29 @@ export class AppService {
     }
   }
 
+// 
+async onLocationMijoz(ctx) {
+  try {
+    let user = await this.userRepository.findOne({
+      where: { user_id: String(ctx.from.id) },
+    });
+
+    if (!user) {
+      return boshMenu(ctx);
+    }
+
+    if (user.last_state === "select_service") {
+      user.searchType = "location";
+
+      user.last_state = "searchLocationService";
+      await user.save();
+      await search_mijoz_location(ctx);
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
+// 
   async requestToAdmin(ctx: Context) {
     const user = await this.userRepository.findOne({
       where: { user_id: `${ctx.from.id}` },
@@ -1415,7 +2073,678 @@ export class AppService {
           parse_mode: "HTML",
           ...Markup.inlineKeyboard([...mainKeyboard]),
         }
-        );
-      }
+      );
+    }
   }
+
+  // ==========
+
+  async complectMasters(ctx: Context) {
+    const services = await this.serviceRepository.findAll();
+    let serviceNames = [];
+    for (let i = 0; i < services.length; i++) {
+      serviceNames.push([
+        Markup.button.callback(services[i].name, `fields=${services[i].id}`),
+      ]);
+    }
+    serviceNames.push([Markup.button.callback("🏠 Bosh menyu", "mainmenu")]);
+    serviceNames.push([
+      Markup.button.callback(
+        "✍️ Hamma userlarga xabar yuborish",
+        "sSmsAllUser"
+      ),
+    ]);
+    await ctx.reply("Ustalarning yo'nalishlaridan birini tanlang", {
+      ...Markup.inlineKeyboard([...serviceNames]),
+    });
+  }
+
+
+
+  // ==============
+
+
+  async onMijoz(ctx: Context) {
+    try {
+      const mijoz_id = String(ctx.from.id);
+      let user = await this.userRepository.findOne({
+        where: { user_id: mijoz_id },
+      });
+
+      if (!user) {
+        user = await this.userRepository.create({
+          user_id: mijoz_id,
+          last_name: ctx.from.last_name,
+          first_name: ctx.from.first_name,
+          status: true,
+          last_state: "register_mijoz",
+          username: ctx.from.username,
+        });
+        await mijoz_ism(ctx);
+      } else if (!user?.real_name) {
+        await mijoz_ism(ctx);
+      } else if (!user?.phone_number) {
+        user.last_state = "contact_mijoz";
+        await user.save();
+        await mijoz_phone(ctx);
+      } else {
+        user.last_state = "main_mijoz";
+        await user.save();
+        await mainMijoz(ctx);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+
+  async onPaginationName(ctx) {
+    try {
+      let user = await this.userRepository.findOne({
+        where: { user_id: String(ctx.from.id) },
+      });
+
+      if (!user) {
+        return boshMenu(ctx);
+      }
+
+      user.paginationCount = +ctx.match["input"].split("-")[1];
+      await user.save();
+      await searchMasterName(ctx, user, this.masterRepository);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  async onPaginationRating(ctx) {
+    try {
+      let user = await this.userRepository.findOne({
+        where: { user_id: String(ctx.from.id) },
+      });
+
+      if (!user) {
+        return boshMenu(ctx);
+      }
+      user.paginationCount = +ctx.match["input"].split("-")[1];
+      await user.save();
+      await searchMasterRating(ctx, user, this.masterRepository);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  async onPaginationLocation(ctx) {
+    try {
+      let user = await this.userRepository.findOne({
+        where: { user_id: String(ctx.from.id) },
+      });
+
+      if (!user) {
+        return boshMenu(ctx);
+      }
+      user.paginationCount = +ctx.match["input"].split("-")[1];
+      await user.save();
+      await show_mijoz_location(ctx, user);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  async onPaginationTime(ctx) {
+    try {
+      let user = await this.userRepository.findOne({
+        where: { user_id: String(ctx.from.id) },
+      });
+
+      if (!user) {
+        return boshMenu(ctx);
+      }
+
+      user.paginationCount = +ctx.match["input"].split("-")[1];
+      await user.save();
+      await tima_pagination(ctx, user);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async changeMijozData(ctx: Context) {
+    try {
+      let user = await this.userRepository.findOne({
+        where: { user_id: String(ctx.from.id) },
+      });
+
+      if (!user) {
+        return boshMenu(ctx);
+      }
+      if (user.last_state == "main_mijoz") {
+        user.last_state = "change_mijoz";
+        await user.save();
+        await change_mijoz_data(ctx);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async changeName(ctx: Context) {
+    try {
+      let user = await this.userRepository.findOne({
+        where: { user_id: String(ctx.from.id) },
+      });
+
+      if (!user) {
+        return boshMenu(ctx);
+      }
+      if (user.last_state == "change_mijoz") {
+        user.last_state = "change_mijoz_name";
+        await user.save();
+
+        await change_mijoz_ism(ctx);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async changeNumber(ctx: Context) {
+    try {
+      let user = await this.userRepository.findOne({
+        where: { user_id: String(ctx.from.id) },
+      });
+
+      if (!user) {
+        return boshMenu(ctx);
+      }
+      if (user.last_state == "change_mijoz") {
+        user.last_state = "change_mijoz_phone";
+        await user.save();
+        await change_mijoz_phone(ctx);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  async orqaga(ctx: Context) {
+    try {
+      let user = await this.userRepository.findOne({
+        where: { user_id: String(ctx.from.id) },
+      });
+
+      if (!user) {
+        return boshMenu(ctx);
+      }
+
+      if (user.last_state == "change_mijoz") {
+        user.last_state = "main_mijoz";
+        await user.save();
+        await mainMijoz(ctx);
+      } else if (
+        user.last_state == "change_mijoz_name" ||
+        user.last_state == "change_mijoz_phone"
+      ) {
+        user.last_state = "change_mijoz";
+        await user.save();
+        await change_mijoz_data(ctx);
+      } else if (user.last_state == "select_service") {
+        user.last_state = "main_mijoz";
+        await user.save();
+        await mainMijoz(ctx);
+      } else if (
+        user.last_state == "searchNameService" ||
+        user.last_state == "searchRatingService" ||
+        user.last_state == "searchLocationService"
+      ) {
+        user.last_state = "select_service";
+        await user.save();
+        await select_service_data(ctx);
+      } else if (user.last_state == "select_master") {
+        await ctx.telegram.deleteMessage(+user.user_id, +user.message_id);
+
+        if (user.searchType == "name") {
+          user.last_state = "searchNameService";
+          const newCtx = await searchMasterNameFirst(
+            ctx,
+            user,
+            this.masterRepository
+          );
+          user.message_id = String(newCtx.message_id);
+          await user.save();
+        } else if (user.searchType == "location") {
+          user.last_state = "searchLocationService";
+          const newCtx = await show_mijoz_locationsFirst(ctx, user);
+          user.message_id = String(newCtx.message_id);
+          await user.save();
+        } else if (user.searchType == "rating") {
+          user.last_state = "searchRatingService";
+          const newCtx = await searchMasterRatingFirst(
+            ctx,
+            user,
+            this.masterRepository
+          );
+          user.message_id = String(newCtx.message_id);
+          await user.save();
+        }
+      } else if (user.last_state == "ranking") {
+        const master = await this.masterRepository.findOne({
+          where: { master_id: user.selectMasterId },
+        });
+        if (!master) {
+          user.last_state = "main_mijoz";
+          await user.save();
+          return await mainMijoz(ctx);
+        }
+        user.last_state = "select_master";
+        await user.save();
+        await select_master(ctx, master);
+      } else if (user.last_state == "getSevenDays") {
+        const master = await this.masterRepository.findOne({
+          where: { master_id: user.selectMasterId },
+        });
+        if (!master) {
+          user.last_state = "main_mijoz";
+          await user.save();
+          return await mainMijoz(ctx);
+        }
+        user.last_state = "select_master";
+        await user.save();
+        await select_master(ctx, master);
+      } else if (user.last_state == "getTimes") {
+        user.last_state = "getSevenDays";
+        user.paginationCount = 0;
+        await user.save();
+        await getSevenDeys(ctx);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async onServices(ctx: Context) {
+    try {
+      let user = await this.userRepository.findOne({
+        where: { user_id: String(ctx.from.id) },
+      });
+
+      if (!user) {
+        return boshMenu(ctx);
+      }
+      if (user.last_state == "main_mijoz") {
+        const services = await this.serviceRepository.findAll();
+        if (services.length) {
+          const service = [];
+          services.forEach((item) => {
+            service.push([
+              { text: item.name, callback_data: `service-${item.id}` },
+            ]);
+          });
+          await services_mijoz(ctx, service);
+        }
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async selectServices(ctx) {
+    try {
+      let user = await this.userRepository.findOne({
+        where: { user_id: String(ctx.from.id) },
+      });
+
+      if (!user) {
+        return boshMenu(ctx);
+      }
+
+      user.last_state = "select_service";
+      user.service_id = +ctx.match["input"].split("-")[1];
+      user.save();
+
+      await ctx.reply(`Quyidagi kriteriyalar bo'yicha tanlang: `, {
+        parse_mode: "HTML",
+        ...Markup.keyboard([
+          ["ISMI 📝"],
+          ["REYTING ⭐️"],
+          ["Lokatsiya 📍"],
+          ["orqaga ↩️"],
+        ]).resize(),
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async serachNameMijoz(ctx) {
+    try {
+      let user = await this.userRepository.findOne({
+        where: { user_id: String(ctx.from.id) },
+      });
+
+      if (!user) {
+        return boshMenu(ctx);
+      }
+
+      if (user.last_state === "select_service") {
+        user.searchType = "name";
+        user.last_state = "searchNameService";
+        await user.save();
+        await search_mijoz_ism(ctx);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  async serachRatingMijoz(ctx) {
+    try {
+      let user = await this.userRepository.findOne({
+        where: { user_id: String(ctx.from.id) },
+      });
+
+      if (!user) {
+        return boshMenu(ctx);
+      }
+
+      if (user.last_state === "select_service") {
+        user.searchType = "rating";
+        user.last_state = "searchRatingService";
+        await ctx.reply("Reyting bo'yicha:", {
+          parse_mode: "HTML",
+          ...Markup.keyboard([["orqaga ↩️"]]).resize(),
+        });
+
+        user.paginationCount = 0;
+        user.message_id = String(ctx.message.message_id + 2);
+        await user.save();
+        await searchMasterRatingFirst(ctx, user, this.masterRepository);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  
+
+
+  async selectMaster(ctx) {
+    try {
+      let user = await this.userRepository.findOne({
+        where: { user_id: String(ctx.from.id) },
+      });
+
+      if (!user) {
+        return boshMenu(ctx);
+      }
+
+      if (
+        user.last_state == "searchNameService" ||
+        user.last_state == "searchRatingService" ||
+        user.last_state == "searchLocationService"
+      ) {
+        const master = await this.masterRepository.findOne({
+          where: { master_id: ctx.match["input"].split("-")[1] },
+        });
+        if (!master) {
+          user.last_state = "main_mijoz";
+          await user.save();
+          return await mainMijoz(ctx);
+        }
+
+        user.last_state = "select_master";
+        user.selectMasterId = ctx.match["input"].split("-")[1];
+        await ctx.telegram.deleteMessage(+user.user_id, +user.message_id);
+        const newCtx = await select_master(ctx, master);
+        user.message_id = String(newCtx.message_id);
+        await user.save();
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async showLocation(ctx) {
+    try {
+      let user = await this.userRepository.findOne({
+        where: { user_id: String(ctx.from.id) },
+      });
+
+      if (!user) {
+        return boshMenu(ctx);
+      }
+      if (user.last_state == "select_master") {
+        const lat = ctx.match["input"].split("-")[1].split(",")[0];
+        const lon = ctx.match["input"].split("-")[1].split(",")[1];
+        await ctx.replyWithLocation(+lat, +lon, +user.user_id);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async toRankings(ctx) {
+    try {
+      let user = await this.userRepository.findOne({
+        where: { user_id: String(ctx.from.id) },
+      });
+
+      if (!user) {
+        return boshMenu(ctx);
+      }
+      if (user.last_state == "select_master") {
+        const ranking = await this.rankingRepository.findOne({
+          where: { user_id: user.user_id, master_id: user.selectMasterId },
+        });
+        user.last_state = "ranking";
+        await user.save();
+        await ranking_master(ctx, ranking?.rank);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async getRank(ctx) {
+    try {
+      let user = await this.userRepository.findOne({
+        where: { user_id: String(ctx.from.id) },
+      });
+
+      if (!user) {
+        return boshMenu(ctx);
+      }
+      if (user.last_state == "ranking") {
+        const rank = +ctx.match["input"].split("-")[1];
+        let ranking = await this.rankingRepository.findOne({
+          where: { user_id: user.user_id, master_id: user.selectMasterId },
+        });
+        if (!ranking) {
+          ranking = await this.rankingRepository.create({
+            user_id: user.user_id,
+            master_id: user.selectMasterId,
+            rank,
+          });
+        } else {
+          await this.rankingRepository.update(
+            { rank },
+            {
+              where: {
+                user_id: user.user_id,
+                master_id: user.selectMasterId,
+              },
+            }
+          );
+        }
+        const ranks = await this.rankingRepository.findAll({
+          where: { master_id: user.selectMasterId },
+        });
+        const total_renk = ranks.reduce((a, b) => a + b.rank, 0) / ranks.length;
+        const master = await this.masterRepository.findOne({
+          where: { master_id: user.selectMasterId },
+        });
+        if (!master) {
+          user.last_state = "main_mijoz";
+          await user.save();
+          return await mainMijoz(ctx);
+        }
+        master.rating = total_renk;
+        await master.save();
+
+        user.last_state = "select_master";
+        await user.save();
+        await select_master(ctx, master);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async getDays(ctx) {
+    try {
+      let user = await this.userRepository.findOne({
+        where: { user_id: String(ctx.from.id) },
+      });
+
+      if (!user) {
+        return boshMenu(ctx);
+      }
+      if (user.last_state == "select_master") {
+        user.last_state = "getSevenDays";
+        await user.save();
+        await getSevenDeys(ctx);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  async getTimes(ctx) {
+    try {
+      let user = await this.userRepository.findOne({
+        where: { user_id: String(ctx.from.id) },
+      });
+
+      if (!user) {
+        return boshMenu(ctx);
+      }
+      if (user.last_state == "getSevenDays") {
+        const master = await this.masterRepository.findOne({
+          where: { master_id: user.selectMasterId },
+        });
+        if (!master) {
+          user.last_state = "main_mijoz";
+          user.paginationCount = 0;
+          await user.save();
+          return await mainMijoz(ctx);
+        }
+        await get_times(ctx, user, this.orderRepository, master);
+        const ctxNew = await tima_paginationsFirst(ctx, user);
+        user.paginationCount = 0;
+        await user.save();
+        user.select_day = ctx.match["input"].split("-")[1];
+        user.last_state = "getTimes";
+        user.message_id = ctxNew.message_id;
+        await user.save();
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async tanlanganHizmatlar(ctx) {
+    try {
+      let user = await this.userRepository.findOne({
+        where: { user_id: String(ctx.from.id) },
+      });
+
+      if (!user) {
+        return boshMenu(ctx);
+      }
+      let orders = await this.orderRepository.findAll({
+        where: { user_id: user.user_id },
+      });
+
+      if (orders.length) {
+        orders.forEach(async (order) => {
+          const master = await this.masterRepository.findOne({
+            where: { master_id: order.master_id },
+          });
+
+          await tanlangan_hizmatlar(ctx, order, master);
+        });
+      } else {
+        ctx.reply("Hali hech qaysi hizmatga ro'yhatdan o'tmagansiz");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async sendSmsMaster(ctx) {
+    try {
+      let user = await this.userRepository.findOne({
+        where: { user_id: String(ctx.from.id) },
+      });
+
+      if (!user) {
+        return boshMenu(ctx);
+      }
+      if (user.last_state == "getTimes") {
+        const master = await this.masterRepository.findOne({
+          where: { master_id: user.selectMasterId },
+        });
+        if (!master) {
+          user.last_state = "main_mijoz";
+          user.paginationCount = 0;
+          await user.save();
+          return await mainMijoz(ctx);
+        }
+        const order = await this.orderRepository.create({
+          user_id: user.user_id,
+          master_id: user.selectMasterId,
+          date: user.select_day,
+          time: ctx.match["input"].split("-")[1],
+          service_id: master.service_id,
+        });
+
+        await sendSMSMaster(ctx, user, order);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async confirmMessage(ctx) {
+    try {
+      let user = await this.userRepository.findOne({
+        where: { user_id: String(ctx.from.id) },
+      });
+
+      if (!user) {
+        return boshMenu(ctx);
+      }
+      const order = await this.orderRepository.findOne({
+        where: { id: +ctx.match["input"].split("-")[1] },
+      });
+      if (order) {
+        if (ctx.match["input"].split("-")[0] == "xa") {
+          ctx.telegram.sendMessage(
+            +order.user_id,
+            `${order.date}.${order.time}-vaqtiga yuborgan so'rovingiz qabul qilindi ✅`
+          );
+          ctx.telegram.sendMessage(
+            +order.master_id,
+            `${order.date}.${order.time}-vaqtiga mijozni qabul qildingiz qabul qilindi ✅`
+          );
+        } else {
+          ctx.telegram.sendMessage(
+            +order.user_id,
+            `${order.date}.${order.time}-vaqtiga yuborgan so'rovingiz qabul qilinmadi ❌`
+          );
+          ctx.telegram.sendMessage(
+            +order.master_id,
+            `${order.date}.${order.time}-vaqtiga mijozni qabul qilmadingiz ❌`
+          );
+          await this.orderRepository.destroy({ where: { id: order.id } });
+        }
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+
 }
