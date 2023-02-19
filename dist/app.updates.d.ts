@@ -23,5 +23,10 @@ export declare class AppUpdate {
     hearsTime(ctx: Context): Promise<void>;
     onSearch(ctx: Context): Promise<void>;
     booking(ctx: Context): Promise<void>;
+    bookedwithuser(ctx: Context): Promise<void>;
+    bookedwithMe(ctx: Context): Promise<void>;
+    fullDayNotBusy(ctx: Context): Promise<void>;
+    fullDayBusy(ctx: Context): Promise<void>;
+    toBackDates(ctx: Context): Promise<void>;
     onMessage(ctx: Context): Promise<void>;
 }

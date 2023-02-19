@@ -30,4 +30,10 @@ export declare class AppService {
     hearsTime(ctx: Context): Promise<void>;
     actionSearchForDay(ctx: Context): Promise<void>;
     bookingWithMaster(ctx: Context): Promise<void>;
+    bookedWithUser(ctx: Context): Promise<void>;
+    bookedWithMeUpdate(ctx: Context): Promise<void>;
+    fullDayNotBusy(ctx: Context): Promise<void>;
+    busyFullDayMaster(ctx: Context): Promise<void>;
+    toBack(ctx: Context): Promise<void>;
+    helper(ctx: Context, dateMatch: string, master: Master): Promise<void>;
 }

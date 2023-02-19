@@ -80,6 +80,21 @@ let AppUpdate = class AppUpdate {
     async booking(ctx) {
         return this.appService.bookingWithMaster(ctx);
     }
+    async bookedwithuser(ctx) {
+        return this.appService.bookedWithUser(ctx);
+    }
+    async bookedwithMe(ctx) {
+        return this.appService.bookedWithMeUpdate(ctx);
+    }
+    async fullDayNotBusy(ctx) {
+        return this.appService.fullDayNotBusy(ctx);
+    }
+    async fullDayBusy(ctx) {
+        return this.appService.busyFullDayMaster(ctx);
+    }
+    async toBackDates(ctx) {
+        return this.appService.toBack(ctx);
+    }
     async onMessage(ctx) {
         return this.appService.onMessage(ctx);
     }
@@ -224,6 +239,41 @@ __decorate([
     __metadata("design:paramtypes", [telegraf_1.Context]),
     __metadata("design:returntype", Promise)
 ], AppUpdate.prototype, "booking", null);
+__decorate([
+    (0, nestjs_telegraf_1.Action)(/(^bookwithuser:[\s\S])\w+/g),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "bookedwithuser", null);
+__decorate([
+    (0, nestjs_telegraf_1.Action)(/(^bookedwithme:[\s\S])\w+/g),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "bookedwithMe", null);
+__decorate([
+    (0, nestjs_telegraf_1.Action)(/(^fulldaynotbusy:[\s\S])\w+/g),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "fullDayNotBusy", null);
+__decorate([
+    (0, nestjs_telegraf_1.Action)(/(^fulldaybusy:[\s\S])\w+/g),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "fullDayBusy", null);
+__decorate([
+    (0, nestjs_telegraf_1.Action)("toback:dates"),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "toBackDates", null);
 __decorate([
     (0, nestjs_telegraf_1.On)("message"),
     __param(0, (0, nestjs_telegraf_1.Ctx)()),

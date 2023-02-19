@@ -32,6 +32,7 @@ let AppService = class AppService {
         this.bot = bot;
     }
     async onStart(ctx) {
+        console.log("11111");
         const user = await this.userRepository.findOne({
             where: { user_id: `${ctx.from.id}` },
         });
@@ -465,7 +466,7 @@ let AppService = class AppService {
                         .join(".")} - ${clients[i].time} / ${user.real_name} , ${user.phone_number}\n`;
                 }
             }
-            await ctx.reply(clientsInfo);
+            await ctx.reply(`Mijozlar ro'yhati:\n ${clientsInfo ? clientsInfo : "Hozircha bo'sh"}`);
         }
     }
     async hearsRating(ctx) {
@@ -642,7 +643,8 @@ let AppService = class AppService {
                     telegraf_1.Markup.button.callback("Ortga", `toback:dates`),
                 ];
                 mainKeyboard.push(fullDay);
-                await ctx.reply("Siz tanlagan kunning umumiy vaqtlari ro'yhati", Object.assign({ parse_mode: "HTML" }, telegraf_1.Markup.inlineKeyboard([...mainKeyboard])));
+                const mes = await ctx.reply(`Siz tanlagan kunning umumiy vaqtlari ro'yhati\n${timeNow} holatiga ko'ra`, Object.assign({ parse_mode: "HTML" }, telegraf_1.Markup.inlineKeyboard([...mainKeyboard])));
+                master.update({ message_id: String(mes.message_id) });
             }
         }
     }
@@ -657,8 +659,339 @@ let AppService = class AppService {
                 const date = datas.split("&")[0].split("=")[1];
                 const time = datas.split("&")[1].split("=")[1];
                 console.log(date, time);
+                await this.orderRepository.create({
+                    user_id: master.master_id,
+                    master_id: master.master_id,
+                    service_id: master.service_id,
+                    date: date,
+                    time: time,
+                });
+                await this.helper(ctx, date, master);
             }
         }
+    }
+    async bookedWithUser(ctx) {
+        const master = await this.masterRepository.findOne({
+            where: { master_id: `${ctx.from.id}` },
+        });
+        if ("match" in ctx) {
+            if (master) {
+                const message = ctx.match["input"];
+                const datas = message.slice(13);
+                console.log(datas);
+                const date = datas.split("&")[1].split("=")[1];
+                const time = datas.split("&")[2].split("=")[1];
+                const user_id = datas.split("&")[0].split("=")[1];
+                const user = await this.userRepository.findOne({
+                    where: { user_id: user_id },
+                });
+                if (user) {
+                    const order = await this.orderRepository.findOne({
+                        where: { user_id: user_id, date: date, time: time },
+                    });
+                    console.log(order);
+                    if (order) {
+                        await ctx.telegram.sendMessage(user.user_id, `Assalomu alaykum hurmatli mijoz.\nSizning ${order.date} sanasida, soat ${order.time} da olgan ro'yhatingiz ma'lum sabablarga ko'ra\nUsta ${master.name} tomonidan bekor qilindi.\nNoqulaylir uchun uzr so'raymiz.`);
+                        await order.destroy();
+                        await this.orderRepository.create({
+                            user_id: master.master_id,
+                            master_id: master.master_id,
+                            date: date,
+                            time: time,
+                            service_id: master.service_id,
+                        });
+                        await this.helper(ctx, date, master);
+                    }
+                }
+            }
+        }
+    }
+    async bookedWithMeUpdate(ctx) {
+        const master = await this.masterRepository.findOne({
+            where: { master_id: `${ctx.from.id}` },
+        });
+        if ("match" in ctx) {
+            if (master) {
+                const message = ctx.match["input"];
+                const datas = message.slice(8);
+                const date = datas.split("&")[0].split("=")[1];
+                const time = datas.split("&")[1].split("=")[1];
+                console.log(date, time);
+                const orderMaster = await this.orderRepository.findOne({
+                    where: {
+                        user_id: master.master_id,
+                        master_id: master.master_id,
+                        date: date,
+                        time: time,
+                        service_id: master.service_id,
+                    },
+                });
+                console.log(orderMaster);
+                if (orderMaster) {
+                    await orderMaster.destroy();
+                    await this.helper(ctx, date, master);
+                }
+            }
+        }
+    }
+    async fullDayNotBusy(ctx) {
+        const master = await this.masterRepository.findOne({
+            where: { master_id: `${ctx.from.id}` },
+        });
+        if ("match" in ctx) {
+            if (master) {
+                const message = ctx.match["input"];
+                const datas = message.slice(15);
+                const date = datas.split("&")[0].split("=")[1];
+                console.log(date);
+                const ordersInThisDay = await this.orderRepository.findAll({
+                    where: { date: date },
+                });
+                console.log(ordersInThisDay, "buuuu");
+                if (ordersInThisDay.length) {
+                    ordersInThisDay.forEach(async (order) => {
+                        if (order.user_id === process.env.ADMIN_ID) {
+                            console.log("shu yerda");
+                        }
+                        else {
+                            const user = await this.userRepository.findOne({
+                                where: { user_id: order.user_id },
+                            });
+                            if (user) {
+                                await ctx.telegram.sendMessage(user.user_id, `Assalomu alaykum hurmatli ${user.real_name}.\nSizning ${order.date} sanasida, soat ${order.time} da olgan ro'yhatingiz ma'lum sabablarga ko'ra\nUsta ${master.name} tomonidan bekor qilindi.\nNoqulaylir uchun uzr so'raymiz.`);
+                            }
+                        }
+                        await order.destroy();
+                    });
+                    await this.helper(ctx, date, master);
+                }
+            }
+        }
+    }
+    async busyFullDayMaster(ctx) {
+        const master = await this.masterRepository.findOne({
+            where: { master_id: `${ctx.from.id}` },
+        });
+        if ("match" in ctx) {
+            if (master) {
+                const message = ctx.match["input"];
+                const datas = message.slice(12);
+                const date = datas.split("&")[0].split("=")[1];
+                console.log(date);
+                const ordersInThisDay = await this.orderRepository.findAll({
+                    where: { date: date },
+                });
+                let uzunlik = ordersInThisDay.length;
+                if (ordersInThisDay.length) {
+                    ordersInThisDay.forEach(async (order) => {
+                        if (order.user_id === process.env.ADMIN_ID) {
+                            await order.destroy();
+                        }
+                        else {
+                            const user = await this.userRepository.findOne({
+                                where: { user_id: order.user_id },
+                            });
+                            if (user) {
+                                await ctx.telegram.sendMessage(user.user_id, `Assalomu alaykum hurmatli ${user.real_name}.\nSizning ${order.date} sanasida, soat ${order.time} da olgan ro'yhatingiz ma'lum sabablarga ko'ra\nUsta ${master.name} tomonidan bekor qilindi.\nNoqulaylir uchun uzr so'raymiz.`);
+                            }
+                            await order.destroy();
+                        }
+                    });
+                }
+                let dateWithTimeStamps = new Date(new Date().setHours(new Date().getHours() + 5));
+                let dateNow = dateWithTimeStamps.toISOString().split("T")[0];
+                let timeNow = dateWithTimeStamps
+                    .toISOString()
+                    .split("T")[1]
+                    .slice(0, 5);
+                let time = master.work_start_time;
+                let count = 0;
+                while (parseInt(time) < parseInt(master.work_end_time)) {
+                    count++;
+                    console.log(uzunlik, count);
+                    await this.orderRepository.create({
+                        user_id: master.master_id,
+                        master_id: master.master_id,
+                        date: date,
+                        time: time,
+                        service_id: master.service_id,
+                    });
+                    if (dateNow === date) {
+                        if (parseInt(time) > parseInt(timeNow)) {
+                        }
+                    }
+                    else {
+                    }
+                    let minut = +time.split(":")[1];
+                    let hour = +time.split(":")[0];
+                    minut = minut + +master.time_per_work;
+                    if (minut >= 60) {
+                        minut = minut - 60;
+                        time = `${+hour + 1 < 10 ? `0${hour + 1}` : hour + 1}:${minut
+                            ? minut.toString().length == 2
+                                ? minut
+                                : `0${minut}`
+                            : `00`}`;
+                    }
+                    else {
+                        time = `${hour < 10 ? `0${hour}` : hour}:${minut
+                            ? minut.toString().length == 2
+                                ? minut
+                                : `0${minut}`
+                            : `00`}`;
+                    }
+                    console.log(time, date);
+                }
+                if (count != uzunlik) {
+                    await this.helper(ctx, date, master);
+                }
+            }
+        }
+    }
+    async toBack(ctx) {
+        const master = await this.masterRepository.findOne({
+            where: { master_id: `${ctx.from.id}` },
+        });
+        if (master) {
+            let date = new Date();
+            let weeksCount = 7;
+            let inlineButtons = [];
+            let timeNow = date.toTimeString().slice(0, 5);
+            let dateNow = date
+                .toISOString()
+                .split("T")[0]
+                .split("-")
+                .slice(1)
+                .reverse()
+                .join(".");
+            if (timeNow < master.work_end_time) {
+                inlineButtons.push([
+                    telegraf_1.Markup.button.callback(dateNow, `search=date:${date.getFullYear()}-${dateNow
+                        .split(".")
+                        .reverse()
+                        .join("-")}`),
+                ]);
+                weeksCount--;
+            }
+            for (let i = 0; i < weeksCount; i++) {
+                let nextDate = new Date(date.setDate(date.getDate() + 1))
+                    .toISOString()
+                    .split("T")[0]
+                    .split("-")
+                    .slice(1)
+                    .reverse()
+                    .join(".");
+                inlineButtons.push([
+                    telegraf_1.Markup.button.callback(nextDate, `search=date:${date.getFullYear()}-${nextDate
+                        .split(".")
+                        .reverse()
+                        .join("-")}`),
+                ]);
+            }
+            await ctx.telegram.editMessageText(master.master_id, master.message_id, null, "Kunni tanlang", Object.assign({ parse_mode: "HTML" }, telegraf_1.Markup.inlineKeyboard([...inlineButtons])));
+        }
+    }
+    async helper(ctx, dateMatch, master) {
+        let dateWithTimeStamps = new Date(new Date().setHours(new Date().getHours() + 5));
+        let dateNow = dateWithTimeStamps.toISOString().split("T")[0];
+        let timeNow = dateWithTimeStamps.toISOString().split("T")[1].slice(0, 5);
+        let orders;
+        if (dateNow === dateMatch) {
+            orders = await this.orderRepository.findAll({
+                where: {
+                    master_id: master.master_id,
+                    date: dateMatch,
+                    time: {
+                        [sequelize_2.Op.gt]: timeNow,
+                    },
+                },
+            });
+        }
+        else {
+            orders = await this.orderRepository.findAll({
+                where: {
+                    master_id: master.master_id,
+                    date: dateMatch,
+                },
+            });
+        }
+        let orderTimes = [];
+        for (let i = 0; i < orders.length; i++) {
+            orderTimes.push(orders[i].time);
+        }
+        console.log(orderTimes);
+        let time = master.work_start_time;
+        let inlineKeyboards = [];
+        while (parseInt(time) < parseInt(master.work_end_time)) {
+            if (dateNow === dateMatch) {
+                if (parseInt(time) > parseInt(timeNow)) {
+                    if (orderTimes.includes(time)) {
+                        for (let i = 0; i < orders.length; i++) {
+                            if (orders[i].time === time) {
+                                if (orders[i].user_id === master.master_id &&
+                                    orders[i].master_id === master.master_id) {
+                                    inlineKeyboards.push(telegraf_1.Markup.button.callback(`👨‍🔬 ${time}`, `bookedwithme:date=${dateMatch}&time=${time}`));
+                                }
+                                else {
+                                    inlineKeyboards.push(telegraf_1.Markup.button.callback(`❌ ${time}`, `bookwithuser:id=${orders[i].user_id}&date=${dateMatch}&time=${time}`));
+                                }
+                            }
+                        }
+                    }
+                    else {
+                        inlineKeyboards.push(telegraf_1.Markup.button.callback(`${time}`, `booking:date=${dateMatch}&time=${time}`));
+                    }
+                }
+            }
+            else {
+                if (orderTimes.includes(time)) {
+                    for (let i = 0; i < orders.length; i++) {
+                        if (orders[i].time === time) {
+                            if (orders[i].user_id === master.master_id &&
+                                orders[i].master_id === master.master_id) {
+                                inlineKeyboards.push(telegraf_1.Markup.button.callback(`👨‍🔬 ${time}`, `bookedwithme:date=${dateMatch}&time=${time}`));
+                            }
+                            else {
+                                inlineKeyboards.push(telegraf_1.Markup.button.callback(`❌ ${time}`, `bookwithuser:id=${orders[i].user_id}&date=${dateMatch}&time=${time}`));
+                            }
+                        }
+                    }
+                }
+                else {
+                    inlineKeyboards.push(telegraf_1.Markup.button.callback(`${time}`, `booking:date=${dateMatch}&time=${time}`));
+                }
+            }
+            let minut = +time.split(":")[1];
+            let hour = +time.split(":")[0];
+            minut = minut + +master.time_per_work;
+            if (minut >= 60) {
+                minut = minut - 60;
+                time = `${+hour + 1 < 10 ? `0${hour + 1}` : hour + 1}:${minut ? (minut.toString().length == 2 ? minut : `0${minut}`) : `00`}`;
+            }
+            else {
+                time = `${hour < 10 ? `0${hour}` : hour}:${minut ? (minut.toString().length == 2 ? minut : `0${minut}`) : `00`}`;
+            }
+        }
+        let buttons = [];
+        let mainKeyboard = [];
+        for (let i = 0; i < inlineKeyboards.length; i++) {
+            buttons.push(inlineKeyboards[i]);
+            if (buttons.length == 5) {
+                mainKeyboard.push(buttons);
+                buttons = [];
+            }
+        }
+        if (buttons.length) {
+            mainKeyboard.push(buttons);
+            buttons = [];
+        }
+        let fullDay = [
+            telegraf_1.Markup.button.callback("Bo'sh", `fulldaynotbusy:date=${dateMatch}`),
+            telegraf_1.Markup.button.callback("❌ Band", `fulldaybusy:date=${dateMatch}`),
+            telegraf_1.Markup.button.callback("Ortga", `toback:dates`),
+        ];
+        mainKeyboard.push(fullDay);
+        await ctx.telegram.editMessageText(master.master_id, +master.message_id, null, `Siz tanlagan kunning umumiy vaqtlari ro'yhati\n${timeNow} holatiga ko'ra`, Object.assign({ parse_mode: "HTML" }, telegraf_1.Markup.inlineKeyboard([...mainKeyboard])));
     }
 };
 AppService = __decorate([

@@ -8,6 +8,7 @@ interface UserAttr {
     status: boolean;
     last_state: string;
     real_name: string;
+    message_id: string;
 }
 export declare class User extends Model<User, UserAttr> {
     user_id: string;
@@ -18,5 +19,6 @@ export declare class User extends Model<User, UserAttr> {
     username: string;
     last_state: string;
     status: boolean;
+    message_id: string;
 }
 export {};

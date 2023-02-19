@@ -65,6 +65,10 @@ __decorate([
     }),
     __metadata("design:type", Boolean)
 ], User.prototype, "status", void 0);
+__decorate([
+    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.STRING }),
+    __metadata("design:type", String)
+], User.prototype, "message_id", void 0);
 User = __decorate([
     (0, sequelize_typescript_1.Table)({ tableName: "user", timestamps: false })
 ], User);

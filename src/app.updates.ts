@@ -114,6 +114,31 @@ export class AppUpdate {
     return this.appService.bookingWithMaster(ctx);
   }
 
+  @Action(/(^bookwithuser:[\s\S])\w+/g)
+  async bookedwithuser(@Ctx() ctx: Context) {
+    return this.appService.bookedWithUser(ctx);
+  }
+
+  @Action(/(^bookedwithme:[\s\S])\w+/g)
+  async bookedwithMe(@Ctx() ctx: Context) {
+    return this.appService.bookedWithMeUpdate(ctx);
+  }
+
+  @Action(/(^fulldaynotbusy:[\s\S])\w+/g)
+  async fullDayNotBusy(@Ctx() ctx: Context) {
+    return this.appService.fullDayNotBusy(ctx);
+  }
+
+  @Action(/(^fulldaybusy:[\s\S])\w+/g)
+  async fullDayBusy(@Ctx() ctx: Context) {
+    return this.appService.busyFullDayMaster(ctx);
+  }
+
+  @Action("toback:dates")
+  async toBackDates(@Ctx() ctx: Context) {
+    return this.appService.toBack(ctx);
+  }
+
   @On("message")
   async onMessage(@Ctx() ctx: Context) {
     return this.appService.onMessage(ctx);
