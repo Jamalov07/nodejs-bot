@@ -68,7 +68,7 @@ export async function show_mijoz_locationsFirst(ctx, user) {
 
   const masters = [];
   const distances = JSON.parse(user.distance);
-  const results = distances.slice(10 * count, 10);
+  const results = distances.slice(10 * count, 10 * (count + 1));
 
   for (const result of results) {
     masters.push([
@@ -105,7 +105,7 @@ export async function show_mijoz_locationsFirst(ctx, user) {
     ]);
   }
 
-  await ctx.reply("Natijalar:", {
+  return await ctx.reply("Natijalar:", {
     parse_mode: "HTML",
     ...Markup.inlineKeyboard([...masters]),
   });

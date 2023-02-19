@@ -70,6 +70,14 @@ export class AppUpdate {
   async prevMastersLocation(@Ctx() ctx: Context) {
     return this.appService.onPaginationLocation(ctx);
   }
+  @Action(/(master-[^c])/)
+  async selectMaster(@Ctx() ctx: Context) {
+    return this.appService.selectMaster(ctx);
+  }
+  @Action("goBack")
+  async goBackAction(@Ctx() ctx: Context) {
+    return this.appService.orqaga(ctx);
+  }
   @On("location")
   async getLocation(@Ctx() ctx: Context) {
     return this.appService.getLocation(ctx);

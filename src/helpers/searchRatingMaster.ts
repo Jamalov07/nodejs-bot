@@ -114,7 +114,7 @@ export async function searchMasterRatingFirst(ctx, user, masterRepo) {
     ]);
   }
 
-  await ctx.reply("Natijalar:", {
+  return await ctx.reply("Natijalar:", {
     parse_mode: "HTML",
     ...Markup.inlineKeyboard([...masters]),
   });

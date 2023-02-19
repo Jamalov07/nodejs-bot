@@ -36,6 +36,7 @@ import {
   show_mijoz_locationsFirst,
 } from "./helpers/searchMasterLocation";
 import { getDistance } from "./helpers/distance";
+import { select_master } from "./helpers/selectMaster";
 
 @Injectable()
 export class AppService {
@@ -266,6 +267,33 @@ export class AppService {
       user.last_state = "select_service";
       await user.save();
       await select_service_data(ctx);
+    } else if (user.last_state == "select_master") {
+      await ctx.telegram.deleteMessage(+user.user_id, +user.message_id);
+
+      if (user.searchType == "name") {
+        user.last_state = "searchNameService";
+        const newCtx = await searchMasterNameFirst(
+          ctx,
+          user,
+          this.masterRepository
+        );
+        user.message_id = String(newCtx.message_id);
+        await user.save();
+      } else if (user.searchType == "location") {
+        user.last_state = "searchLocationService";
+        const newCtx = await show_mijoz_locationsFirst(ctx, user);
+        user.message_id = String(newCtx.message_id);
+        await user.save();
+      } else if (user.searchType == "rating") {
+        user.last_state = "searchRatingService";
+        const newCtx = await searchMasterRatingFirst(
+          ctx,
+          user,
+          this.masterRepository
+        );
+        user.message_id = String(newCtx.message_id);
+        await user.save();
+      }
     }
   }
 
@@ -325,7 +353,7 @@ export class AppService {
     }
 
     if (user.last_state === "select_service") {
-      user.searchType = "rating";
+      user.searchType = "name";
       user.last_state = "searchNameService";
       await user.save();
       await search_mijoz_ism(ctx);
@@ -409,12 +437,44 @@ export class AppService {
       return boshMenu(ctx);
     }
 
-    if (user.last_state === "service") {
+    if (user.last_state === "select_service") {
       user.searchType = "location";
 
       user.last_state = "searchLocationService";
       await user.save();
       await search_mijoz_location(ctx);
+    }
+  }
+
+  async selectMaster(ctx) {
+    let user = await this.userRepository.findOne({
+      where: { user_id: String(ctx.from.id) },
+    });
+
+    if (!user) {
+      return boshMenu(ctx);
+    }
+
+    if (
+      user.last_state == "searchNameService" ||
+      user.last_state == "searchRatingService" ||
+      user.last_state == "searchLocationService"
+    ) {
+      const master = await this.masterRepository.findOne({
+        where: { master_id: ctx.match["input"].split("-")[1] },
+      });
+      if (!master) {
+        user.last_state = "main_mijoz";
+        await user.save();
+        return await mainMijoz(ctx);
+      }
+
+      user.last_state = "select_master";
+      user.selectMasterId = ctx.match["input"].split("-")[1];
+      await ctx.telegram.deleteMessage(+user.user_id, +user.message_id);
+      const newCtx = await select_master(ctx, master);
+      user.message_id = String(newCtx.message_id);
+      await user.save();
     }
   }
 }

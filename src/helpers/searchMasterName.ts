@@ -82,7 +82,8 @@ export async function searchMasterNameFirst(ctx, user: User, masterRepo) {
   if (!results.length) {
     return await ctx.reply("Hechkim topilmadi, Qaytadan urinib ko'ring");
   }
-  user.message_id = String(ctx.message.message_id + 1);
+  if (ctx.message?.message_id)
+    user.message_id = String(ctx.message.message_id + 1);
   await user.save();
   for (let i = 0; i < results.length; i++) {
     masters.push([
@@ -121,8 +122,8 @@ export async function searchMasterNameFirst(ctx, user: User, masterRepo) {
       },
     ]);
   }
-
-  await ctx.reply("Natijalar:", {
+  console.log("salom");
+  return await ctx.reply("Natijalar:", {
     parse_mode: "HTML",
     ...Markup.inlineKeyboard([...masters]),
   });
