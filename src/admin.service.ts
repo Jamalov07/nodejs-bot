@@ -13,6 +13,7 @@ import { messageMasterMenu } from "./helpers/messageMaster.menu";
 import { messageUser } from "./helpers/messageUser";
 import { Op } from "sequelize";
 import { getterServices } from "./helpers/getServices";
+import { returnMenuForUser } from "./helpers/returnMenuForUser";
 @Injectable()
 export class AdminService {
   constructor(
@@ -317,6 +318,22 @@ export class AdminService {
           })
         }
       }
+    } else if(admin.last_state == 'sendmsguser') {
+        const admin = await this.adminRepository.findOne({
+          where:{
+            admin_id:`${ctx.from.id}`
+          }
+        });
+        console.log(admin.target_user_id)
+        if("text" in ctx.message) {
+          await ctx.telegram.sendMessage(admin.target_user_id,ctx.message.text)
+          await this.adminRepository.findOne({
+            where:{
+              last_state:'finish',
+            }
+          })
+          await returnMenuForUser(ctx,'<b> Xabaringiz userga yuborildi! </b>');
+        }
     }
   }
 
@@ -623,10 +640,91 @@ export class AdminService {
     });
   }
 
-  async unBan(ctx: Context) {
-    
+  async doBan(ctx: Context) {
+    if("match" in ctx) {
+      const id = ctx.match[0].slice(9);
+      await this.userRepository.update({
+        is_ban:true
+      },{
+        where:{
+          user_id:id
+        }
+      })
+      await returnMenuForUser(ctx,'User ban qilindi, Davom etish uchun quyidagilarni bosing')
+    }
+  }
+  async deBan(ctx:Context) {
+    if("match" in ctx) {
+      const id = ctx.match[0].slice(11);
+      await this.userRepository.update({
+        is_ban:false
+      },{
+        where:{
+          user_id:id
+        }
+      })
+      await ctx.reply('User bandan yechildi, Davom etish uchun quyidagilardan birini tanlang',{
+        parse_mode:'HTML',
+        ...Markup.keyboard(["🏠 Bosh menyu","🙍‍♂️ Mijozlarni izlashda davom etish","✔️ Userni ban qilish"])
+        .oneTime()
+        .resize()
+      })
+    }
   }
 
+  async isBan( ctx:Context) {
+    if("match" in ctx) {
+      const id = ctx.match[0].slice(6);
+      console.log(id);
+      const check = await this.userRepository.findOne({
+        where:{
+          user_id:`${id}`
+        }
+      })
+      if(check.is_ban){
+        await returnMenuForUser(ctx,'User ban da ekan, davom etish uchun quyidagilarni bosing')
+      } else {
+        await ctx.reply('User toliq ozodlikda !',{
+          parse_mode:'HTML',
+          ...Markup.keyboard(["🏠 Bosh menyu","🙍‍♂️ Mijozlarni izlashda davom etish","✔️ Userni ban qilish"])
+          .oneTime()
+          .resize()
+        })
+      }
+    }
+  }
+
+  async userStat(ctx:Context){
+    if("match" in ctx) {
+      const id = ctx.match[0].slice(9);
+      const order = await this.orderRepository.findAll({
+        where:{
+          user_id:id
+        }
+      })
+      const user = await this.userRepository.findOne({
+        where:{
+          user_id:id
+        }
+      })
+      await returnMenuForUser(ctx,`User ismi:${user.real_name}\nKunlik doktor ko'rigi:${order.length? order.length > 1: 2}\nOylik doktor ko'rigi:${order.length * 30 ? order.length > 1: 1 * 30}\nSalomatligi foizda:${100 - order.length}%`)
+    }
+  }
+
+  async msgToUser(ctx:Context){
+    if("match" in ctx) {
+      const id = ctx.match[0].slice(8);
+      await this.adminRepository.update({
+        last_state:'sendmsguser',
+        target_user_id:id
+      },{
+        where:{
+          admin_id:`${ctx.from.id}`
+        }
+      })
+      await returnMenuForUser(ctx,'👇 <b>Xabaringizni shu yerga yozing</b>')
+    }
+  }
 }
 
 

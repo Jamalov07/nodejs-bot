@@ -27,6 +27,7 @@ const messageToAdmin_1 = require("./helpers/messageToAdmin");
 const messageMaster_menu_1 = require("./helpers/messageMaster.menu");
 const sequelize_2 = require("sequelize");
 const getServices_1 = require("./helpers/getServices");
+const returnMenuForUser_1 = require("./helpers/returnMenuForUser");
 let AdminService = class AdminService {
     constructor(userRepository, serviceRepository, masterRepository, orderRepository, adminRepository, bot) {
         this.userRepository = userRepository;
@@ -273,7 +274,9 @@ let AdminService = class AdminService {
                 });
                 if (oneUser) {
                     await ctx.reply(`<b>Ma'lumotlar</b>:\n<b>Userning ismi</b>:${oneUser.real_name}\n<b>Userning telefon raqami</b>:${oneUser.phone_number}\n`, Object.assign({ parse_mode: 'HTML' }, telegraf_1.Markup.inlineKeyboard([
-                        [telegraf_1.Markup.button.callback("❌ Mijozni ban qilish", `deluser=${oneUser.user_id}`)],
+                        [telegraf_1.Markup.button.callback("❌ Mijozni ban qilish", `banuser=${oneUser.user_id}`)],
+                        [telegraf_1.Markup.button.callback("☑️ Mijozni ban dan yechish", `debanuser=${oneUser.user_id}`)],
+                        [telegraf_1.Markup.button.callback("✔️ Mijozni ban yoki ban emasligini tekshirish", `isban=${oneUser.user_id}`)],
                         [telegraf_1.Markup.button.callback("📊 User haqida statistika chiqarish", `statuser=${oneUser.user_id}`)],
                         [telegraf_1.Markup.button.callback("✍️ Mijozga sms yuborish", `msguser=${oneUser.user_id}`)],
                         [telegraf_1.Markup.button.callback("🏠 User izlashga qaytish", 'returntosearch')]
@@ -284,6 +287,23 @@ let AdminService = class AdminService {
                         .oneTime()
                         .resize()));
                 }
+            }
+        }
+        else if (admin.last_state == 'sendmsguser') {
+            const admin = await this.adminRepository.findOne({
+                where: {
+                    admin_id: `${ctx.from.id}`
+                }
+            });
+            console.log(admin.target_user_id);
+            if ("text" in ctx.message) {
+                await ctx.telegram.sendMessage(admin.target_user_id, ctx.message.text);
+                await this.adminRepository.findOne({
+                    where: {
+                        last_state: 'finish',
+                    }
+                });
+                await (0, returnMenuForUser_1.returnMenuForUser)(ctx, '<b> Xabaringiz userga yuborildi! </b>');
             }
         }
     }
@@ -526,6 +546,84 @@ let AdminService = class AdminService {
         }
         serviceNames.push([telegraf_1.Markup.button.callback("🏠 Bosh menyu", "mainmenu")]);
         await ctx.reply("Mavjud xizmatlar", Object.assign({}, telegraf_1.Markup.inlineKeyboard([...serviceNames])));
+    }
+    async doBan(ctx) {
+        if ("match" in ctx) {
+            const id = ctx.match[0].slice(9);
+            await this.userRepository.update({
+                is_ban: true
+            }, {
+                where: {
+                    user_id: id
+                }
+            });
+            await (0, returnMenuForUser_1.returnMenuForUser)(ctx, 'User ban qilindi, Davom etish uchun quyidagilarni bosing');
+        }
+    }
+    async deBan(ctx) {
+        if ("match" in ctx) {
+            const id = ctx.match[0].slice(11);
+            await this.userRepository.update({
+                is_ban: false
+            }, {
+                where: {
+                    user_id: id
+                }
+            });
+            await ctx.reply('User bandan yechildi, Davom etish uchun quyidagilardan birini tanlang', Object.assign({ parse_mode: 'HTML' }, telegraf_1.Markup.keyboard(["🏠 Bosh menyu", "🙍‍♂️ Mijozlarni izlashda davom etish", "✔️ Userni ban qilish"])
+                .oneTime()
+                .resize()));
+        }
+    }
+    async isBan(ctx) {
+        if ("match" in ctx) {
+            const id = ctx.match[0].slice(6);
+            console.log(id);
+            const check = await this.userRepository.findOne({
+                where: {
+                    user_id: `${id}`
+                }
+            });
+            if (check.is_ban) {
+                await (0, returnMenuForUser_1.returnMenuForUser)(ctx, 'User ban da ekan, davom etish uchun quyidagilarni bosing');
+            }
+            else {
+                await ctx.reply('User toliq ozodlikda !', Object.assign({ parse_mode: 'HTML' }, telegraf_1.Markup.keyboard(["🏠 Bosh menyu", "🙍‍♂️ Mijozlarni izlashda davom etish", "✔️ Userni ban qilish"])
+                    .oneTime()
+                    .resize()));
+            }
+        }
+    }
+    async userStat(ctx) {
+        if ("match" in ctx) {
+            const id = ctx.match[0].slice(9);
+            const order = await this.orderRepository.findAll({
+                where: {
+                    user_id: id
+                }
+            });
+            const user = await this.userRepository.findOne({
+                where: {
+                    user_id: id
+                }
+            });
+            await (0, returnMenuForUser_1.returnMenuForUser)(ctx, `User ismi:${user.real_name}\nKunlik doktor ko'rigi:${order.length ? order.length > 1 : 2}\nOylik doktor ko'rigi:${order.length * 30 ? order.length > 1 : 1 * 30}\nSalomatligi foizda:${100 - order.length}%`);
+        }
+    }
+    async msgToUser(ctx) {
+        if ("match" in ctx) {
+            const id = ctx.match[0].slice(8);
+            console.log(id);
+            await this.adminRepository.update({
+                last_state: 'sendmsguser',
+                target_user_id: id
+            }, {
+                where: {
+                    admin_id: `${ctx.from.id}`
+                }
+            });
+            await (0, returnMenuForUser_1.returnMenuForUser)(ctx, '👇 <b>Xabaringizni shu yerga yozing</b>');
+        }
     }
 };
 AdminService = __decorate([

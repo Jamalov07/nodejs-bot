@@ -36,4 +36,9 @@ export declare class AdminService {
     sendMessageAll(ctx: Context): Promise<void>;
     sendMessageUser(ctx: Context): Promise<void>;
     seeAllServiceTypes(ctx: Context): Promise<void>;
+    doBan(ctx: Context): Promise<void>;
+    deBan(ctx: Context): Promise<void>;
+    isBan(ctx: Context): Promise<void>;
+    userStat(ctx: Context): Promise<void>;
+    msgToUser(ctx: Context): Promise<void>;
 }

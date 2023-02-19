@@ -27,7 +27,14 @@ export declare class AppUpdate {
     sendMessageToMaster(ctx: Context): Promise<void>;
     deleteField(ctx: Context): Promise<void>;
     updateField(ctx: Context): Promise<void>;
+    banUser(ctx: Context): Promise<void>;
+    debanUser(ctx: Context): Promise<void>;
+    isBanUser(ctx: Context): Promise<void>;
+    statsUser(ctx: Context): Promise<void>;
+    messageToUser(ctx: Context): Promise<void>;
+    buttonBan(ctx: Context): Promise<void>;
     reAddNewItem(ctx: Context): Promise<void>;
+    buttonUnBan(ctx: Context): Promise<void>;
     reSeeMasters(ctx: Context): Promise<void>;
     searchByName(ctx: Context): Promise<void>;
     reAgainByNumber(ctx: Context): Promise<void>;
@@ -40,6 +47,7 @@ export declare class AppUpdate {
     returnToUserMenu(ctx: Context): Promise<void>;
     reSeeClients(ctx: Context): Promise<void>;
     retur(ctx: Context): Promise<void>;
+    returnToSearch(ctx: Context): Promise<void>;
     searchUserByPhone(ctx: Context): Promise<void>;
     searchByUserByName(ctx: Context): Promise<void>;
     onMessage(ctx: Context): Promise<void>;

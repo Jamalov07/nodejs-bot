@@ -106,13 +106,38 @@ export class AppUpdate {
   }
   @Action(/^(banuser=\d+)/)
   async banUser(@Ctx() ctx:Context) {
-    return this.adminService
+    return this.adminService.doBan(ctx);
+  }
+  @Action(/^(debanuser=\d+)/)
+  async debanUser(@Ctx() ctx:Context) {
+    return this.adminService.deBan(ctx);
+  }
+
+  @Action(/^(isban=\d+)/)
+  async isBanUser(@Ctx() ctx:Context) {
+    return this.adminService.isBan(ctx);
+  }
+
+  @Action(/^(statuser=\d+)/)
+  async statsUser(@Ctx() ctx:Context) {
+    return this.adminService.userStat(ctx);
+  }
+  @Action(/^(msguser=\d+)/)
+  async messageToUser(@Ctx() ctx:Context) {
+    return this.adminService.msgToUser(ctx);
+  }
+  @Hears("✔️ Userni ban qilish")
+  async buttonBan(@Ctx() ctx:Context){
+    return this.adminService.doBan(ctx);
   }
   @Hears("♻️ Yana qo'shish")
   async reAddNewItem(@Ctx() ctx:Context) {
     return this.adminService.reAddNewItem(ctx);
   }
-
+  @Hears("✔️ Userni bandan yechish")
+  async buttonUnBan(@Ctx() ctx:Context) {
+    return this.adminService.deBan(ctx);
+  }
   @Hears("👨‍⚕️ Usta yo'nalishlariga qaytish")
   async reSeeMasters(@Ctx() ctx:Context) {
     return this.adminService.complectMasters(ctx);
@@ -161,6 +186,11 @@ export class AppUpdate {
 
   @Hears("🙍‍♂️ Mijozlarni bo'limiga qaytish")
   async retur(@Ctx() ctx:Context) {
+    return this.adminService.seeUsers(ctx);
+  }
+
+  @Action('returntosearch')
+  async returnToSearch(@Ctx() ctx:Context) {
     return this.adminService.seeUsers(ctx);
   }
   @Hears('📱 Telefon raqam orqali')

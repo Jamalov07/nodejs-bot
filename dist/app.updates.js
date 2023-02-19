@@ -88,8 +88,29 @@ let AppUpdate = class AppUpdate {
     async updateField(ctx) {
         return this.adminService.updateFields(ctx);
     }
+    async banUser(ctx) {
+        return this.adminService.doBan(ctx);
+    }
+    async debanUser(ctx) {
+        return this.adminService.deBan(ctx);
+    }
+    async isBanUser(ctx) {
+        return this.adminService.isBan(ctx);
+    }
+    async statsUser(ctx) {
+        return this.adminService.userStat(ctx);
+    }
+    async messageToUser(ctx) {
+        return this.adminService.msgToUser(ctx);
+    }
+    async buttonBan(ctx) {
+        return this.adminService.doBan(ctx);
+    }
     async reAddNewItem(ctx) {
         return this.adminService.reAddNewItem(ctx);
+    }
+    async buttonUnBan(ctx) {
+        return this.adminService.deBan(ctx);
     }
     async reSeeMasters(ctx) {
         return this.adminService.complectMasters(ctx);
@@ -125,6 +146,9 @@ let AppUpdate = class AppUpdate {
         return this.adminService.seeUsers(ctx);
     }
     async retur(ctx) {
+        return this.adminService.seeUsers(ctx);
+    }
+    async returnToSearch(ctx) {
         return this.adminService.seeUsers(ctx);
     }
     async searchUserByPhone(ctx) {
@@ -292,12 +316,61 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AppUpdate.prototype, "updateField", null);
 __decorate([
+    (0, nestjs_telegraf_1.Action)(/^(banuser=\d+)/),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "banUser", null);
+__decorate([
+    (0, nestjs_telegraf_1.Action)(/^(debanuser=\d+)/),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "debanUser", null);
+__decorate([
+    (0, nestjs_telegraf_1.Action)(/^(isban=\d+)/),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "isBanUser", null);
+__decorate([
+    (0, nestjs_telegraf_1.Action)(/^(statuser=\d+)/),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "statsUser", null);
+__decorate([
+    (0, nestjs_telegraf_1.Action)(/^(msguser=\d+)/),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "messageToUser", null);
+__decorate([
+    (0, nestjs_telegraf_1.Hears)("✔️ Userni ban qilish"),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "buttonBan", null);
+__decorate([
     (0, nestjs_telegraf_1.Hears)("♻️ Yana qo'shish"),
     __param(0, (0, nestjs_telegraf_1.Ctx)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [telegraf_1.Context]),
     __metadata("design:returntype", Promise)
 ], AppUpdate.prototype, "reAddNewItem", null);
+__decorate([
+    (0, nestjs_telegraf_1.Hears)("✔️ Userni bandan yechish"),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "buttonUnBan", null);
 __decorate([
     (0, nestjs_telegraf_1.Hears)("👨‍⚕️ Usta yo'nalishlariga qaytish"),
     __param(0, (0, nestjs_telegraf_1.Ctx)()),
@@ -382,6 +455,13 @@ __decorate([
     __metadata("design:paramtypes", [telegraf_1.Context]),
     __metadata("design:returntype", Promise)
 ], AppUpdate.prototype, "retur", null);
+__decorate([
+    (0, nestjs_telegraf_1.Action)('returntosearch'),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "returnToSearch", null);
 __decorate([
     (0, nestjs_telegraf_1.Hears)('📱 Telefon raqam orqali'),
     __param(0, (0, nestjs_telegraf_1.Ctx)()),
