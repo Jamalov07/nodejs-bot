@@ -22,5 +22,6 @@ export declare class AppUpdate {
     hearsRating(ctx: Context): Promise<void>;
     hearsTime(ctx: Context): Promise<void>;
     onSearch(ctx: Context): Promise<void>;
+    booking(ctx: Context): Promise<void>;
     onMessage(ctx: Context): Promise<void>;
 }

@@ -77,6 +77,9 @@ let AppUpdate = class AppUpdate {
     async onSearch(ctx) {
         return this.appService.actionSearchForDay(ctx);
     }
+    async booking(ctx) {
+        return this.appService.bookingWithMaster(ctx);
+    }
     async onMessage(ctx) {
         return this.appService.onMessage(ctx);
     }
@@ -214,6 +217,13 @@ __decorate([
     __metadata("design:paramtypes", [telegraf_1.Context]),
     __metadata("design:returntype", Promise)
 ], AppUpdate.prototype, "onSearch", null);
+__decorate([
+    (0, nestjs_telegraf_1.Action)(/(^booking:[\s\S])\w+/g),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "booking", null);
 __decorate([
     (0, nestjs_telegraf_1.On)("message"),
     __param(0, (0, nestjs_telegraf_1.Ctx)()),

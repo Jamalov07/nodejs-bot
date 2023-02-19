@@ -109,6 +109,11 @@ export class AppUpdate {
     return this.appService.actionSearchForDay(ctx);
   }
 
+  @Action(/(^booking:[\s\S])\w+/g)
+  async booking(@Ctx() ctx: Context) {
+    return this.appService.bookingWithMaster(ctx);
+  }
+
   @On("message")
   async onMessage(@Ctx() ctx: Context) {
     return this.appService.onMessage(ctx);

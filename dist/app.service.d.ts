@@ -29,4 +29,5 @@ export declare class AppService {
     hearsRating(ctx: Context): Promise<void>;
     hearsTime(ctx: Context): Promise<void>;
     actionSearchForDay(ctx: Context): Promise<void>;
+    bookingWithMaster(ctx: Context): Promise<void>;
 }

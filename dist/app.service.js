@@ -532,11 +532,12 @@ let AppService = class AppService {
             if (master) {
                 const message = ctx.match["input"];
                 const dateMatch = message.split("=")[1].split(":")[1];
-                let dateNow = new Date().toISOString().split("T")[0];
-                let timeNow = new Date().toISOString().split("T")[1].slice(0, 5);
-                console.log(timeNow);
-                console.log(dateMatch);
-                console.log(dateNow);
+                let dateWithTimeStamps = new Date(new Date().setHours(new Date().getHours() + 5));
+                let dateNow = dateWithTimeStamps.toISOString().split("T")[0];
+                let timeNow = dateWithTimeStamps
+                    .toISOString()
+                    .split("T")[1]
+                    .slice(0, 5);
                 let orders;
                 if (dateNow === dateMatch) {
                     orders = await this.orderRepository.findAll({
@@ -570,12 +571,18 @@ let AppService = class AppService {
                             if (orderTimes.includes(time)) {
                                 for (let i = 0; i < orders.length; i++) {
                                     if (orders[i].time === time) {
-                                        inlineKeyboards.push(telegraf_1.Markup.button.callback(`❌ ${time}`, `bookwithuser:id=${orders[i].user_id}-date=${dateMatch}-time=${time}`));
+                                        if (orders[i].user_id === master.master_id &&
+                                            orders[i].master_id === master.master_id) {
+                                            inlineKeyboards.push(telegraf_1.Markup.button.callback(`👨‍🔬 ${time}`, `bookedwithme:date=${dateMatch}&time=${time}`));
+                                        }
+                                        else {
+                                            inlineKeyboards.push(telegraf_1.Markup.button.callback(`❌ ${time}`, `bookwithuser:id=${orders[i].user_id}&date=${dateMatch}&time=${time}`));
+                                        }
                                     }
                                 }
                             }
                             else {
-                                inlineKeyboards.push(telegraf_1.Markup.button.callback(`${time}`, `booking:date=${dateMatch}-time=${time}`));
+                                inlineKeyboards.push(telegraf_1.Markup.button.callback(`${time}`, `booking:date=${dateMatch}&time=${time}`));
                             }
                         }
                     }
@@ -583,12 +590,18 @@ let AppService = class AppService {
                         if (orderTimes.includes(time)) {
                             for (let i = 0; i < orders.length; i++) {
                                 if (orders[i].time === time) {
-                                    inlineKeyboards.push(telegraf_1.Markup.button.callback(`❌ ${time}`, `bookwithuser:id=${orders[i].user_id}-date=${dateMatch}-time=${time}`));
+                                    if (orders[i].user_id === master.master_id &&
+                                        orders[i].master_id === master.master_id) {
+                                        inlineKeyboards.push(telegraf_1.Markup.button.callback(`👨‍🔬 ${time}`, `bookedwithme:date=${dateMatch}&time=${time}`));
+                                    }
+                                    else {
+                                        inlineKeyboards.push(telegraf_1.Markup.button.callback(`❌ ${time}`, `bookwithuser:id=${orders[i].user_id}&date=${dateMatch}&time=${time}`));
+                                    }
                                 }
                             }
                         }
                         else {
-                            inlineKeyboards.push(telegraf_1.Markup.button.callback(`${time}`, `booking:date=${dateMatch}-time=${time}`));
+                            inlineKeyboards.push(telegraf_1.Markup.button.callback(`${time}`, `booking:date=${dateMatch}&time=${time}`));
                         }
                     }
                     let minut = +time.split(":")[1];
@@ -596,14 +609,20 @@ let AppService = class AppService {
                     minut = minut + +master.time_per_work;
                     if (minut >= 60) {
                         minut = minut - 60;
-                        time = `${+hour + 1 < 10 ? `0${hour + 1}` : hour + 1}:${minut ? minut : `00`}`;
+                        time = `${+hour + 1 < 10 ? `0${hour + 1}` : hour + 1}:${minut
+                            ? minut.toString().length == 2
+                                ? minut
+                                : `0${minut}`
+                            : `00`}`;
                     }
                     else {
-                        time = `${hour < 10 ? `0${hour}` : hour}:${minut ? minut : `00`}`;
+                        time = `${hour < 10 ? `0${hour}` : hour}:${minut
+                            ? minut.toString().length == 2
+                                ? minut
+                                : `0${minut}`
+                            : `00`}`;
                     }
-                    console.log(time);
                 }
-                console.log(inlineKeyboards);
                 let buttons = [];
                 let mainKeyboard = [];
                 for (let i = 0; i < inlineKeyboards.length; i++) {
@@ -617,8 +636,27 @@ let AppService = class AppService {
                     mainKeyboard.push(buttons);
                     buttons = [];
                 }
-                console.log(...mainKeyboard);
+                let fullDay = [
+                    telegraf_1.Markup.button.callback("Bo'sh", `fulldaynotbusy:date=${dateMatch}`),
+                    telegraf_1.Markup.button.callback("❌ Band", `fulldaybusy:date=${dateMatch}`),
+                    telegraf_1.Markup.button.callback("Ortga", `toback:dates`),
+                ];
+                mainKeyboard.push(fullDay);
                 await ctx.reply("Siz tanlagan kunning umumiy vaqtlari ro'yhati", Object.assign({ parse_mode: "HTML" }, telegraf_1.Markup.inlineKeyboard([...mainKeyboard])));
+            }
+        }
+    }
+    async bookingWithMaster(ctx) {
+        const master = await this.masterRepository.findOne({
+            where: { master_id: `${ctx.from.id}` },
+        });
+        if ("match" in ctx) {
+            if (master) {
+                const message = ctx.match["input"];
+                const datas = message.slice(8);
+                const date = datas.split("&")[0].split("=")[1];
+                const time = datas.split("&")[1].split("=")[1];
+                console.log(date, time);
             }
         }
     }
