@@ -31,6 +31,7 @@ export declare class AppUpdate {
     debanUser(ctx: Context): Promise<void>;
     isBanUser(ctx: Context): Promise<void>;
     statsUser(ctx: Context): Promise<void>;
+    nextElement(ctx: Context): Promise<void>;
     messageToUser(ctx: Context): Promise<void>;
     buttonBan(ctx: Context): Promise<void>;
     reAddNewItem(ctx: Context): Promise<void>;

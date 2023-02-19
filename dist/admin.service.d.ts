@@ -41,4 +41,5 @@ export declare class AdminService {
     isBan(ctx: Context): Promise<void>;
     userStat(ctx: Context): Promise<void>;
     msgToUser(ctx: Context): Promise<void>;
+    nextElement(ctx: Context): Promise<void>;
 }

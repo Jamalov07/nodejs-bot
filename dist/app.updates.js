@@ -100,6 +100,10 @@ let AppUpdate = class AppUpdate {
     async statsUser(ctx) {
         return this.adminService.userStat(ctx);
     }
+    async nextElement(ctx) {
+        console.log("afjbasd");
+        return this.adminService.nextElement(ctx);
+    }
     async messageToUser(ctx) {
         return this.adminService.msgToUser(ctx);
     }
@@ -343,6 +347,13 @@ __decorate([
     __metadata("design:paramtypes", [telegraf_1.Context]),
     __metadata("design:returntype", Promise)
 ], AppUpdate.prototype, "statsUser", null);
+__decorate([
+    (0, nestjs_telegraf_1.Action)(/(^next=[\s\S])\w+/g),
+    __param(0, (0, nestjs_telegraf_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [telegraf_1.Context]),
+    __metadata("design:returntype", Promise)
+], AppUpdate.prototype, "nextElement", null);
 __decorate([
     (0, nestjs_telegraf_1.Action)(/^(msguser=\d+)/),
     __param(0, (0, nestjs_telegraf_1.Ctx)()),

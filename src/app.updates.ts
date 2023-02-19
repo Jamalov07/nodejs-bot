@@ -122,6 +122,12 @@ export class AppUpdate {
   async statsUser(@Ctx() ctx:Context) {
     return this.adminService.userStat(ctx);
   }
+
+  @Action(/(^next=[\s\S])\w+/g)
+  async nextElement(@Ctx() ctx:Context) {
+    console.log("afjbasd")
+    return this.adminService.nextElement(ctx);
+  }
   @Action(/^(msguser=\d+)/)
   async messageToUser(@Ctx() ctx:Context) {
     return this.adminService.msgToUser(ctx);

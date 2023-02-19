@@ -234,15 +234,59 @@ export class AdminService {
       }
     } else if(admin.last_state == 'userbyname') {
         if('text' in ctx.message) {
+          const oldUser = await this.userRepository.findAll({
+            where:{
+              real_name: {
+                [Op.iLike]: `%${ctx.message.text}%`
+              }
+            },offset:0
+          })
           const allUsers = await this.userRepository.findAll({
             where:{
               real_name: {
                 [Op.iLike]: `%${ctx.message.text}%`
               }
-            }
+            },
+            limit:1,
+            offset:0
           });
-          console.log(allUsers)
-          await ctx.reply(allUsers[0].dataValues.real_name);
+          console.log(oldUser.length)
+          if(oldUser.length == 1){
+            await ctx.reply(`Ismi:${allUsers[0].real_name}\nTelefon raqami:${allUsers[0].phone_number}`,{
+              parse_mode:'HTML',
+              ...Markup.inlineKeyboard([
+                [Markup.button.callback("❌ Mijozni ban qilish",`banuser=${allUsers[0].user_id}`)],
+                [Markup.button.callback("☑️ Mijozni ban dan yechish",`debanuser=${allUsers[0].user_id}`)],
+                [Markup.button.callback("✔️ Mijozni ban yoki ban emasligini tekshirish",`isban=${allUsers[0].user_id}`)],
+                [Markup.button.callback("📊 User haqida statistika chiqarish",`statuser=${allUsers[0].user_id}`)],
+                [Markup.button.callback("✍️ Mijozga sms yuborish",`msguser=${allUsers[0].user_id}`)],
+                [Markup.button.callback("🏠 User izlashga qaytish",'returntosearch')]
+              ])
+            });
+          } else if(oldUser.length < 1) {
+            await returnMenuForUser(ctx,'<b>Bunday nomli user yoq</b>');
+          } else {
+            const listIndicator = [];
+            if(1 > 1){
+              listIndicator.push(Markup.button.callback("⏮ Oldingi",`prev=${0}`))
+            }
+            if(0+1 < oldUser.length) {
+              listIndicator.push(Markup.button.callback("⏭ Keyingisi",`next=${ctx.message.text}=${0+1}`))
+            }
+            await ctx.replyWithHTML(`<b>Bunday ismli user ko'p</b>`)
+            await ctx.reply(`Ismi:${allUsers[0].real_name}\nTelefon raqami:${allUsers[0].phone_number}`,{
+              parse_mode:'HTML',
+              ...Markup.inlineKeyboard([
+                [Markup.button.callback("❌ Mijozni ban qilish",`banuser=${allUsers[0].user_id}`)],
+                [Markup.button.callback("☑️ Mijozni ban dan yechish",`debanuser=${allUsers[0].user_id}`)],
+                [Markup.button.callback("✔️ Mijozni ban yoki ban emasligini tekshirish",`isban=${allUsers[0].user_id}`)],
+                [Markup.button.callback("📊 User haqida statistika chiqarish",`statuser=${allUsers[0].user_id}`)],
+                [Markup.button.callback("✍️ Mijozga sms yuborish",`msguser=${allUsers[0].user_id}`)],
+                [Markup.button.callback("🏠 User izlashga qaytish",'returntosearch')],
+                listIndicator
+              ])
+            });
+          }
         }
 
     } else if(admin.last_state == 'sendAllMasters') {
@@ -723,6 +767,65 @@ export class AdminService {
         }
       })
       await returnMenuForUser(ctx,'👇 <b>Xabaringizni shu yerga yozing</b>')
+    }
+  }
+
+  async nextElement(ctx:Context) {
+    if("match" in ctx) {
+      const msg = ctx.match["input"];
+      const offset = +msg.split("=")[2];
+      const name = msg.split("=")[1];
+      const oldUser = await this.userRepository.findAll({
+        where:{
+          real_name: {
+            [Op.iLike]: `%${name}%`
+          }
+        },offset:0
+      })
+      const allUsers = await this.userRepository.findAll({
+        where:{
+          real_name: {
+            [Op.iLike]: `%${name}%`
+          }
+        },
+        limit:1,
+        offset:offset
+      });
+      console.log(oldUser.length)
+      if(oldUser.length == 1){
+        await ctx.reply(`Ismi:${allUsers[0].real_name}\nTelefon raqami:${allUsers[0].phone_number}`,{
+          parse_mode:'HTML',
+          ...Markup.inlineKeyboard([
+            [Markup.button.callback("❌ Mijozni ban qilish",`banuser=${allUsers[0].user_id}`)],
+            [Markup.button.callback("☑️ Mijozni ban dan yechish",`debanuser=${allUsers[0].user_id}`)],
+            [Markup.button.callback("✔️ Mijozni ban yoki ban emasligini tekshirish",`isban=${allUsers[0].user_id}`)],
+            [Markup.button.callback("📊 User haqida statistika chiqarish",`statuser=${allUsers[0].user_id}`)],
+            [Markup.button.callback("✍️ Mijozga sms yuborish",`msguser=${allUsers[0].user_id}`)],
+            [Markup.button.callback("🏠 User izlashga qaytish",'returntosearch')]
+          ])
+        });
+      } else {
+        const listIndicator = [];
+        if(offset > 0){
+          listIndicator.push(Markup.button.callback("⏮ Oldingi",`prev=${0}`))
+        }
+        if(offset+1 < oldUser.length) {
+          listIndicator.push(Markup.button.callback("⏭ Keyingisi",`next=${0 + 1}`))
+        }
+        await ctx.reply(`Ismi:${allUsers[0].real_name}\nTelefon raqami:${allUsers[0].phone_number}`,{
+          parse_mode:'HTML',
+          ...Markup.inlineKeyboard([
+            [Markup.button.callback("❌ Mijozni ban qilish",`banuser=${allUsers[0].user_id}`)],
+            [Markup.button.callback("☑️ Mijozni ban dan yechish",`debanuser=${allUsers[0].user_id}`)],
+            [Markup.button.callback("✔️ Mijozni ban yoki ban emasligini tekshirish",`isban=${allUsers[0].user_id}`)],
+            [Markup.button.callback("📊 User haqida statistika chiqarish",`statuser=${allUsers[0].user_id}`)],
+            [Markup.button.callback("✍️ Mijozga sms yuborish",`msguser=${allUsers[0].user_id}`)],
+            [Markup.button.callback("🏠 User izlashga qaytish",'returntosearch')],
+            listIndicator
+          ])
+        });
+      }
+      
     }
   }
 }
