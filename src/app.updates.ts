@@ -18,7 +18,11 @@ export class AppUpdate {
   async onStart(@Ctx() ctx: Context) {
     return this.appService.onStart(ctx);
   }
-  @Hears("MIJOZ 👤")
+  @Command("Mijoz")
+  async commandMijoz(@Ctx() ctx: Context) {
+    return this.appService.onMijoz(ctx);
+  }
+  @Hears("🤵‍♂️ Mijoz")
   async onMijoz(@Ctx() ctx: Context) {
     return this.appService.onMijoz(ctx);
   }

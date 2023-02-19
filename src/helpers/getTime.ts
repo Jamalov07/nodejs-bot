@@ -8,18 +8,6 @@ export async function get_times(ctx: Context, user, order, master) {
     let time = master.work_start_time;
     let times = [];
     while (true) {
-      console.log(
-        await order.findOne({
-          where: {
-            [Op.and]: [
-              { user_id: user.user_id },
-              { master_id: master.master_id },
-              { date: user.select_day },
-              { time },
-            ],
-          },
-        })
-      );
       let check = !(await order.findOne({
         where: {
           user_id: user.user_id,
