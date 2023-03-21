@@ -779,9 +779,9 @@ export class AdminService {
         where:{
           real_name: {
             [Op.iLike]: `%${name}%`
-          }
+          },
         },offset:0
-      })
+      });
       const allUsers = await this.userRepository.findAll({
         where:{
           real_name: {
