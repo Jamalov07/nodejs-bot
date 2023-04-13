@@ -3,7 +3,7 @@ import { Context } from "telegraf";
 import { AppService } from "./app.service";
 import { AdminService } from "./admin.service";
 
-@Update()
+@Update() 
 export class AppUpdate {
   constructor(private readonly appService: AppService,
               private readonly adminService: AdminService
